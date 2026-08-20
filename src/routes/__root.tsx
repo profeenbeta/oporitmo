@@ -14,9 +14,18 @@ import { Toaster } from "sonner";
 import appCss from "../styles.css?url";
 
 const APP_NAME = "OpoRitmo";
-const host = import.meta.env.VITE_PUBLIC_HOSTNAME;
-const ogImage = host ? `https://${host}/og.jpg` : undefined;
-const xBanner = host ? `https://${host}/x-banner.jpg` : undefined;
+const PUBLIC_HOST = "oporitmo.grok.me";
+const injectedHost = String(import.meta.env.VITE_PUBLIC_HOSTNAME ?? "").trim();
+/** Preview has no hostname (no og tags). On deploy, VITE_PUBLIC_HOSTNAME is often
+ *  an internal *.vercel.app URL that requires SSO — scrapers cannot fetch it. */
+const host = injectedHost
+  ? injectedHost.endsWith(".grok.me")
+    ? injectedHost
+    : PUBLIC_HOST
+  : undefined;
+const ogImage = host
+  ? "https://cdn.jsdelivr.net/gh/profeenbeta/oporitmo@main/public/og.jpg"
+  : undefined;
 
 export const Route = createRootRoute({
   head: () => ({
@@ -29,34 +38,39 @@ export const Route = createRootRoute({
         content:
           "Organiza el temario de oposiciones con vueltas, repasos y sorteos. Sin romper el calendario.",
       },
+      { property: "og:title", content: APP_NAME },
+      {
+        property: "og:description",
+        content:
+          "Organiza el temario de oposiciones con vueltas, repasos y sorteos. Sin romper el calendario.",
+      },
+      { name: "robots", content: "index, follow, max-image-preview:large" },
+      { property: "og:type", content: "website" },
       { name: "apple-mobile-web-app-title", content: APP_NAME },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "default" },
       { name: "theme-color", content: "#f3eee4" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: APP_NAME },
       ...(ogImage
         ? [
             { property: "og:image", content: ogImage },
             { property: "og:image:width", content: "1200" },
             { property: "og:image:height", content: "630" },
-          ]
-        : []),
-      ...(xBanner
-        ? [
-            { property: "x:game:image", content: xBanner },
-            { property: "x:game:image:width", content: "1200" },
-            { property: "x:game:image:height", content: "264" },
+            { property: "og:image:type", content: "image/jpeg" },
+            { property: "og:image:alt", content: "OpoRitmo" },
+            { name: "twitter:image", content: ogImage },
           ]
         : []),
     ],
     links: [
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
-      { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
       { rel: "manifest", href: "/manifest.webmanifest" },
       { rel: "stylesheet", href: appCss },
       { rel: "manifest", href: "/__grok/manifest.webmanifest" },
       { rel: "apple-touch-icon", href: "/__grok/icon-180.png" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
     ],
     scripts: [{ children: THEME_BOOT_SCRIPT }],
   }),
@@ -69,8 +83,8 @@ export const Route = createRootRoute({
         <PreviewHostBridge />
         <ThemeSync />
         <PwaRegister />
-        <CloudSync />
         <AuthProvider>
+          <CloudSync />
           <Outlet />
           <Toaster
             position="bottom-center"

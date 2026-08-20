@@ -12,6 +12,7 @@ import { Credit } from "@/components/credit";
 import { ThemeToggle } from "@/components/theme-sync";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { DIAS_SEMANA } from "@/lib/oporitmo/types";
+import { useSyncStatus } from "@/lib/oporitmo/sync-status";
 import { cn } from "@/lib/utils";
 
 const fieldClass =
@@ -37,6 +38,7 @@ export function Onboarding() {
   const actualizarConfig = useOpoStore((s) => s.actualizarConfig);
   const resetDemo = useOpoStore((s) => s.resetDemo);
   const { user, isPending } = useCurrentUserState();
+  const syncStatus = useSyncStatus((s) => s.status);
 
   const [paso, setPaso] = useState<Paso>(1);
   const [totalTemas, setTotalTemas] = useState(config.totalTemas || 25);
@@ -90,9 +92,14 @@ export function Onboarding() {
     if (isPending || !user) return;
     if (typeof window === "undefined") return;
     if (window.sessionStorage.getItem(LOGIN_KEY) !== "1") return;
+    if (syncStatus !== "ok" && syncStatus !== "error") return;
     window.sessionStorage.removeItem(LOGIN_KEY);
+    if (useOpoStore.getState().onboardingHecho) {
+      window.sessionStorage.removeItem(PASO_KEY);
+      return;
+    }
     setPaso("animo");
-  }, [user, isPending]);
+  }, [user, isPending, syncStatus]);
 
   useEffect(() => {
     if (paso !== "animo") return;
@@ -129,6 +136,7 @@ export function Onboarding() {
       window.sessionStorage.removeItem(PASO_KEY);
       window.sessionStorage.removeItem(LOGIN_KEY);
     }
+    if (useOpoStore.getState().onboardingHecho) return;
     completarArranque(datosRef.current);
   }
 

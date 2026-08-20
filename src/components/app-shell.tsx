@@ -10,7 +10,9 @@ import { Credit } from "@/components/credit";
 import { Onboarding } from "@/components/onboarding";
 import { SyncHint } from "@/components/cloud-sync";
 import { ThemeToggle } from "@/components/theme-sync";
+import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { useOpoHydrated, useOpoStore } from "@/lib/oporitmo/store";
+import { useSyncStatus } from "@/lib/oporitmo/sync-status";
 import { cn } from "@/lib/utils";
 
 const NAV = [
@@ -25,8 +27,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const hydrated = useOpoHydrated();
   const onboardingHecho = useOpoStore((s) => s.onboardingHecho);
+  const { user, isPending } = useCurrentUserState();
+  const syncStatus = useSyncStatus((s) => s.status);
+  const esperandoNube =
+    Boolean(user) && !onboardingHecho && (isPending || syncStatus === "cargando");
 
-  if (!hydrated) {
+  if (!hydrated || esperandoNube) {
     return (
       <div className="min-h-dvh bg-bg px-4 pt-8">
         <div className="mx-auto h-40 max-w-lg animate-pulse rounded-xl bg-surface-2" />

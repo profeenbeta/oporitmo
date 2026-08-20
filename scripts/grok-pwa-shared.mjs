@@ -90,13 +90,24 @@ export function publicAppHost(hostHeader) {
     .toLowerCase();
   if (!host || !/^[a-z0-9.-]+$/.test(host) || !host.includes(".")) return "";
   if (/^\d{1,3}(?:\.\d{1,3}){3}$/.test(host)) return "";
+  // Internal Vercel URLs 302 to SSO — X/Facebook scrapers cannot fetch og:image.
+  if (host.endsWith(".vercel.app")) return "";
   return host;
 }
 
+const PUBLISHED_HOST = "oporitmo.grok.me";
+
 export function resolvePublicHost(hostHeader) {
-  return (
-    publicAppHost(hostHeader) || publicAppHost(process.env?.VITE_PUBLIC_HOSTNAME)
-  );
+  const fromReq = publicAppHost(hostHeader);
+  if (fromReq) return fromReq;
+  const fromEnv = publicAppHost(process.env?.VITE_PUBLIC_HOSTNAME);
+  if (fromEnv) return fromEnv;
+  const raw = String(hostHeader || process.env?.VITE_PUBLIC_HOSTNAME || "")
+    .split(",")[0]
+    .trim()
+    .toLowerCase();
+  if (raw.includes("vercel.app") || raw.includes("grok.me")) return PUBLISHED_HOST;
+  return "";
 }
 
 export function isInstallQuery(url) {
@@ -317,11 +328,20 @@ export function grokOgHeadTags({
       : `${ogServiceUrl()}/v1/card.png?host=${encodeURIComponent(publicHost)}&title=${encodeURIComponent(title)}`;
     const color = !custom ? placeholderCardColor(site) : "";
     if (color) image += `&color=${encodeURIComponent(color)}`;
+    // grok.me responses send x-robots-tag: noindex; X/Telegram skip those images.
+    // WhatsApp does not. Serve scrapers the same JPEG from GitHub (no noindex).
+    if (custom && publicHost.endsWith(".grok.me")) {
+      image =
+        "https://cdn.jsdelivr.net/gh/profeenbeta/oporitmo@main/public/og.jpg";
+    }
     tags.push(`<meta property="og:image" content="${escapeHtml(image)}">`);
     tags.push(`<meta property="og:image:width" content="1200">`);
     tags.push(`<meta property="og:image:height" content="630">`);
+    tags.push(`<meta property="og:image:type" content="image/jpeg">`);
+    tags.push(`<meta name="twitter:image" content="${escapeHtml(image)}">`);
+    const isGame = String(site.type ?? "").toLowerCase() === "x:game";
     const banner = String(site.banner ?? "").trim();
-    if (banner) {
+    if (isGame && banner) {
       const bannerUrl = `https://${publicHost}${banner.startsWith("/") ? banner : `/${banner}`}`;
       tags.push(`<meta property="x:game:image" content="${escapeHtml(bannerUrl)}">`);
       tags.push(`<meta property="x:game:image:width" content="1200">`);

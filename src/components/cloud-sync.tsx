@@ -30,6 +30,14 @@ export function CloudSync() {
         const local = useOpoStore.getState().snapshotNube();
         if (!remote) {
           await saveCloudState({ data: { ...local, savedAt: local.savedAt || Date.now() } });
+        } else if (!local.onboardingHecho) {
+          // Otro dispositivo / arranque: no pisar el plan que ya está en la cuenta.
+          skip.current = true;
+          useOpoStore.getState().aplicarNube(remote);
+          if (typeof window !== "undefined") {
+            window.sessionStorage.removeItem("oporitmo-arranque-paso");
+            window.sessionStorage.removeItem("oporitmo-login-desde-arranque");
+          }
         } else if (!local.savedAt || remote.savedAt >= local.savedAt) {
           skip.current = true;
           useOpoStore.getState().aplicarNube(remote);
