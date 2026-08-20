@@ -1,0 +1,160 @@
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Source+Sans+3:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap");
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --bg: #f3eee4;
+  --surface: #fbf7ef;
+  --surface-2: #efe8da;
+  --ink: #1c1914;
+  --muted: #6d665b;
+  --faint: #9a9286;
+  --line: #ddd4c4;
+  --accent: #2f5d4a;
+  --accent-fg: #f7f3ea;
+  --accent-soft: #dce8e1;
+  --warn: #8a4b22;
+  --danger: #8f2d2d;
+  --bloque-bosque: #15803d;
+  --bloque-azul: #1d4ed8;
+  --bloque-terracota: #ea580c;
+  --bloque-mostaza: #eab308;
+  --bloque-berenjena: #7c3aed;
+  --bloque-oliva: #0891b2;
+  --bloque-coral: #e11d48;
+  --bloque-pizarra: #0f172a;
+  --bloque-bosque-suave: #bbf7d0;
+  --bloque-azul-suave: #bfdbfe;
+  --bloque-terracota-suave: #fed7aa;
+  --bloque-mostaza-suave: #fef08a;
+  --bloque-berenjena-suave: #ddd6fe;
+  --bloque-oliva-suave: #a5f3fc;
+  --bloque-coral-suave: #fecdd3;
+  --bloque-pizarra-suave: #cbd5e1;
+  color-scheme: light;
+}
+
+html.dark {
+  --bg: #14110e;
+  --surface: #1e1a16;
+  --surface-2: #2a241e;
+  --ink: #f3eee4;
+  --muted: #b4aaa0;
+  --faint: #8a8178;
+  --line: #3c342c;
+  --accent: #8fbfa6;
+  --accent-fg: #122018;
+  --accent-soft: #24352c;
+  --warn: #d4a078;
+  --danger: #e08a8a;
+  --bloque-bosque: #4ade80;
+  --bloque-azul: #60a5fa;
+  --bloque-terracota: #fb923c;
+  --bloque-mostaza: #facc15;
+  --bloque-berenjena: #c4b5fd;
+  --bloque-oliva: #22d3ee;
+  --bloque-coral: #fb7185;
+  --bloque-pizarra: #e2e8f0;
+  --bloque-bosque-suave: #14532d;
+  --bloque-azul-suave: #1e3a8a;
+  --bloque-terracota-suave: #9a3412;
+  --bloque-mostaza-suave: #854d0e;
+  --bloque-berenjena-suave: #5b21b6;
+  --bloque-oliva-suave: #115e59;
+  --bloque-coral-suave: #9d174d;
+  --bloque-pizarra-suave: #334155;
+  color-scheme: dark;
+}
+
+@theme {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-soft: var(--accent-soft);
+  --color-warn: var(--warn);
+  --color-danger: var(--danger);
+  --color-bloque-bosque: var(--bloque-bosque);
+  --color-bloque-azul: var(--bloque-azul);
+  --color-bloque-terracota: var(--bloque-terracota);
+  --color-bloque-mostaza: var(--bloque-mostaza);
+  --color-bloque-berenjena: var(--bloque-berenjena);
+  --color-bloque-oliva: var(--bloque-oliva);
+  --color-bloque-coral: var(--bloque-coral);
+  --color-bloque-pizarra: var(--bloque-pizarra);
+  --color-bloque-bosque-suave: var(--bloque-bosque-suave);
+  --color-bloque-azul-suave: var(--bloque-azul-suave);
+  --color-bloque-terracota-suave: var(--bloque-terracota-suave);
+  --color-bloque-mostaza-suave: var(--bloque-mostaza-suave);
+  --color-bloque-berenjena-suave: var(--bloque-berenjena-suave);
+  --color-bloque-oliva-suave: var(--bloque-oliva-suave);
+  --color-bloque-coral-suave: var(--bloque-coral-suave);
+  --color-bloque-pizarra-suave: var(--bloque-pizarra-suave);
+  --font-display: "Fraunces", "Times New Roman", serif;
+  --font-sans: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  html,
+  body,
+  #app {
+    min-height: 100%;
+  }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    line-height: 1.5;
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+    font-family: var(--font-display);
+    letter-spacing: -0.025em;
+    line-height: 1.2;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  input,
+  select,
+  textarea {
+    font: inherit;
+    color: inherit;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
