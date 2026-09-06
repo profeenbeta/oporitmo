@@ -34,12 +34,13 @@ export const DEFAULT_CONFIG: Config = {
   fechaFin: "2027-06-14",
   horasSemana: sumaHoras(DEFAULT_HORAS_DIA),
   horasPorDia: [...DEFAULT_HORAS_DIA],
-  especialidad: "Educación Física",
-  comunidad: "Andalucía",
+  especialidad: "",
+  comunidad: "",
   umbralObjetivo: 0.8,
   intervaloRepaso: 30,
   vueltas: [...DEFAULT_VUELTAS],
   duracionSimulacro: 90,
+  diasLibres: [],
 };
 
 const PREP_DEMO = [1, 3, 5, 7, 8, 10, 12, 14, 16, 18, 20, 22, 24];
@@ -139,6 +140,17 @@ function fechasOrdenadas(inicio: string, fin: string, examen: string) {
   return { fechaInicio, fechaFin };
 }
 
+function normalizarDiasLibres(raw?: unknown): string[] {
+  if (!Array.isArray(raw)) return [];
+  const out: string[] = [];
+  for (const d of raw) {
+    if (typeof d === "string" && /^\d{4}-\d{2}-\d{2}$/.test(d) && !out.includes(d)) {
+      out.push(d);
+    }
+  }
+  return out;
+}
+
 function normalizarConfig(raw: Partial<Config> | undefined): Config {
   const horasPorDia = normalizarHorasDia(raw?.horasPorDia);
   const intervalo = Number(raw?.intervaloRepaso);
@@ -166,6 +178,7 @@ function normalizarConfig(raw: Partial<Config> | undefined): Config {
       240,
       Math.max(10, Math.round(Number(raw?.duracionSimulacro) || 90)),
     ),
+    diasLibres: normalizarDiasLibres(raw?.diasLibres),
   };
 }
 
@@ -284,6 +297,7 @@ type Store = AppData & {
   asignarBloque: (temaId: number, bloqueId: string | null) => void;
   actualizarConfig: (patch: Partial<Config>) => void;
   setHorasDia: (indice: number, horas: number) => void;
+  toggleDiaLibre: (fecha: string) => void;
   completarArranque: (input: ArranqueInput) => void;
   abrirArranque: () => void;
   resetDemo: () => void;
@@ -559,6 +573,14 @@ export const useOpoStore = create<Store>()(
         horasPorDia[indice] = Math.max(0, horas);
         get().actualizarConfig({ horasPorDia });
       },
+      toggleDiaLibre: (fecha) => {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) return;
+        const actuales = get().config.diasLibres ?? [];
+        const diasLibres = actuales.includes(fecha)
+          ? actuales.filter((d) => d !== fecha)
+          : [...actuales, fecha];
+        get().actualizarConfig({ diasLibres });
+      },
       completarArranque: (input) => {
         const config = normalizarConfig({
           ...get().config,
@@ -568,8 +590,8 @@ export const useOpoStore = create<Store>()(
           fechaInicio: input.fechaInicio,
           fechaFin: input.fechaFin,
           horasPorDia: input.horasPorDia,
-          especialidad: input.especialidad.trim() || DEFAULT_CONFIG.especialidad,
-          comunidad: input.comunidad.trim() || DEFAULT_CONFIG.comunidad,
+          especialidad: input.especialidad.trim(),
+          comunidad: input.comunidad.trim(),
         });
         set({
           config,
@@ -658,6 +680,7 @@ export const useOpoStore = create<Store>()(
       name: "oporitmo-v1",
       version: 11,
       migrate: (persisted) => {
+        try {
         const s = (persisted ?? {}) as Partial<Store> & {
           horasHoy?: number;
         };
@@ -693,6 +716,15 @@ export const useOpoStore = create<Store>()(
           apariencia: s.apariencia ?? "sistema",
           savedAt: s.savedAt ?? 0,
         };
+        } catch {
+          return {
+            ...seed,
+            onboardingHecho: false,
+            apariencia: "sistema" as const,
+            savedAt: 0,
+            horasHoyOverride: null,
+          };
+        }
       },
     },
   ),

@@ -1,7 +1,7 @@
 {
   "name": "OpoRitmo",
   "short_name": "OpoRitmo",
-  "description": "Organiza el temario de oposiciones con vueltas, repasos y sorteos.",
+  "description": "Tu oposición, a tu ritmo.",
   "id": "/",
   "start_url": "/",
   "scope": "/",

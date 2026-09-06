@@ -1,5 +1,6 @@
 import { genericOAuthClient } from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
+import { AUTH_HOST, necesitaPuenteOAuth } from "./dominio";
 import { GROK_PROVIDERS } from "./providers";
 
 /**
@@ -113,6 +114,15 @@ export async function signIn(
     }
   }
   setBearerToken(null);
+
+  if (necesitaPuenteOAuth()) {
+    const vuelta = new URL(callbackURL, window.location.origin).toString();
+    const start = new URL(`https://${AUTH_HOST}/auth/oauth-start`);
+    start.searchParams.set("p", providerId);
+    start.searchParams.set("back", vuelta);
+    window.location.href = start.toString();
+    return;
+  }
 
   if (inLivePreview()) {
     if (!popup) throw new Error("Pop-up blocked — allow pop-ups for sign-in");

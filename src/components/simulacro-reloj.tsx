@@ -29,11 +29,13 @@ export function SimulacroReloj({
   onCancelar: () => void;
 }) {
   const [now, setNow] = useState(() => Date.now());
+  const [confirmSalir, setConfirmSalir] = useState(false);
   const duracionMs = run.duracionMinutos * 60_000;
   const usado = elapsedMs(run, now);
   const restante = duracionMs - usado;
   const agotado = restante <= 0;
   const enPausa = run.pauseAt !== null;
+  const hayTiempoPendiente = usado > 0;
 
   useEffect(() => {
     if (enPausa) return;
@@ -52,6 +54,22 @@ export function SimulacroReloj({
     };
   }, [agotado, restante, run.titulo]);
 
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key !== "Escape") return;
+      e.preventDefault();
+      if (confirmSalir) {
+        setConfirmSalir(false);
+        return;
+      }
+      const usadoMs = elapsedMs(run, Date.now());
+      if (usadoMs <= 0) onCancelar();
+      else setConfirmSalir(true);
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [confirmSalir, run, onCancelar]);
+
   function pausar() {
     if (run.pauseAt) {
       onRun({
@@ -69,6 +87,15 @@ export function SimulacroReloj({
     const mins = Math.max(1, Math.round(elapsedMs(run, Date.now()) / 60_000));
     if (guardar) onTerminar(mins);
     else onCancelar();
+  }
+
+  function pedirSalir() {
+    const usadoMs = elapsedMs(run, Date.now());
+    if (usadoMs <= 0) {
+      onCancelar();
+      return;
+    }
+    setConfirmSalir(true);
   }
 
   return (
@@ -107,30 +134,73 @@ export function SimulacroReloj({
           Llevas {formatReloj(usado)}
         </p>
 
-        <div className="mt-auto flex flex-col gap-2 pb-4">
+        <div className="mt-auto flex flex-col gap-2 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
           <button
             type="button"
             onClick={pausar}
-            className="h-11 rounded-md border border-line bg-surface text-sm font-medium"
+            className="h-11 rounded-full bg-surface-2 text-sm font-medium"
           >
             {enPausa ? "Seguir" : "Pausa"}
           </button>
           <button
             type="button"
             onClick={() => cerrar(true)}
-            className="h-11 rounded-md bg-accent text-sm font-semibold text-accent-fg"
+            className="h-11 rounded-full bg-accent text-sm font-semibold text-accent-fg"
           >
             Terminar y guardar
           </button>
           <button
             type="button"
-            onClick={() => cerrar(false)}
-            className="h-11 rounded-md text-sm font-medium text-muted"
+            onClick={pedirSalir}
+            className="h-11 rounded-full text-sm font-medium text-muted"
           >
             Salir sin guardar
           </button>
         </div>
       </div>
+
+      {confirmSalir && hayTiempoPendiente && (
+        <div
+          className="fixed inset-0 z-[90] grid place-items-center bg-ink/45 px-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="salir-sim-titulo"
+          onClick={() => setConfirmSalir(false)}
+        >
+          <div
+            className="relative w-full max-w-sm card px-6 py-8 text-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p
+              id="salir-sim-titulo"
+              className="font-display text-xl font-semibold"
+            >
+              ¿Salir sin guardar?
+            </p>
+            <p className="mt-2 text-sm text-muted">
+              Llevas {formatReloj(usado)} en este simulacro. Si sales ahora, ese
+              tiempo no se guarda.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setConfirmSalir(false);
+                onCancelar();
+              }}
+              className="mt-6 h-12 w-full rounded-full bg-danger text-sm font-semibold text-accent-fg"
+            >
+              Salir sin guardar
+            </button>
+            <button
+              type="button"
+              onClick={() => setConfirmSalir(false)}
+              className="mt-2 h-12 w-full rounded-full bg-surface-2 text-sm font-semibold"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,10 +1,12 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Credit } from "@/components/credit";
+import { EmailAuthForm } from "@/components/email-auth-form";
 import { GROK_PROVIDERS, authEnabled, signIn } from "@/lib/auth/client";
 
 export const Route = createFileRoute("/login")({ component: Login });
 
 function Login() {
+  const navigate = useNavigate();
   return (
     <main className="grid min-h-dvh place-items-center bg-bg px-6 text-ink">
       <div className="w-full max-w-sm">
@@ -13,18 +15,22 @@ function Login() {
         </p>
         <h1 className="mt-1 font-display text-3xl font-semibold">Entrar</h1>
         <p className="mt-2 text-sm text-muted">
-          Con Google o X el temario se guarda en tu cuenta y lo recuperas en
-          otro móvil. Sin cuenta, solo queda en este dispositivo.
+          Con Google, X o un correo el temario se guarda en tu cuenta y lo
+          recuperas en otro móvil. Sin cuenta, solo queda en este dispositivo.
         </p>
 
         <div className="mt-6 space-y-2">
           {authEnabled ? (
-            GROK_PROVIDERS.map((p) => (
+            GROK_PROVIDERS.map((p, i) => (
               <button
                 key={p.providerId}
                 type="button"
                 onClick={() => signIn(p.providerId, { callbackURL: "/" })}
-                className="h-11 w-full rounded-md border border-line bg-surface text-sm font-medium hover:bg-surface-2"
+                className={
+                  i === 0
+                    ? "h-11 w-full rounded-full bg-accent text-sm font-semibold text-accent-fg"
+                    : "h-11 w-full rounded-full bg-surface-2 text-sm font-medium"
+                }
               >
                 Continuar con {p.label}
               </button>
@@ -33,6 +39,11 @@ function Login() {
             <p className="text-sm text-muted">El acceso está desactivado.</p>
           )}
         </div>
+        {authEnabled && (
+          <div className="mt-4">
+            <EmailAuthForm onOk={() => void navigate({ to: "/" })} />
+          </div>
+        )}
 
         <Link
           to="/"

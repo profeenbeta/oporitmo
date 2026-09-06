@@ -33,13 +33,13 @@ export function AppErrorComponent({ error }: ErrorComponentProps) {
       </h1>
       <p className="max-w-md text-sm text-muted">
         {modulo
-          ? "El móvil tiene una versión antigua en caché. Pulsa recargar y se pone al día."
+          ? "El navegador tiene una versión antigua en caché. Pulsa recargar y se pone al día."
           : error.message || "Prueba a recargar."}
       </p>
       <button
         type="button"
         onClick={() => void recargar()}
-        className="mt-2 h-11 rounded-md bg-accent px-5 text-sm font-semibold text-accent-fg"
+        className="mt-2 h-11 rounded-full bg-accent px-5 text-sm font-semibold text-accent-fg"
       >
         Recargar
       </button>

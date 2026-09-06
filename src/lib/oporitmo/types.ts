@@ -57,6 +57,7 @@ export type Config = {
   intervaloRepaso: number;
   vueltas: number[];
   duracionSimulacro: number;
+  diasLibres: string[];
 };
 
 export type AppData = {

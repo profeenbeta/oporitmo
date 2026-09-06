@@ -1,9 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { AppShell } from "@/components/app-shell";
-import { CoverageCard } from "@/components/coverage-card";
 import { TodayPanel } from "@/components/today-panel";
-import { diasRestantes, horasDelDia, hoyISO } from "@/lib/oporitmo/math";
+import { horasDelDia, hoyISO } from "@/lib/oporitmo/math";
 import { obtenerSugerencias } from "@/lib/oporitmo/suggestions";
 import { useOpoStore } from "@/lib/oporitmo/store";
 
@@ -34,7 +33,6 @@ function Home() {
 
   return (
     <AppShell>
-      <CoverageCard data={data} dias={diasRestantes(config.fechaFin || config.fechaExamen)} />
       <TodayPanel principal={principal} secundarias={secundarias} />
     </AppShell>
   );

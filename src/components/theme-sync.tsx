@@ -38,7 +38,7 @@ export function ThemeToggle({ className }: { className?: string }) {
       type="button"
       onClick={() => setApariencia(oscuro ? "claro" : "oscuro")}
       className={cn(
-        "grid size-11 place-items-center rounded-md border border-line bg-surface text-ink",
+        "grid size-11 place-items-center rounded-full bg-surface text-ink shadow-card",
         className,
       )}
       aria-label={oscuro ? "Pasar a modo claro" : "Pasar a modo oscuro"}
@@ -60,14 +60,14 @@ export function ThemePicker() {
   return (
     <div>
       <p className="mb-1 text-sm text-muted">Apariencia</p>
-      <div className="grid grid-cols-3 gap-1 rounded-md bg-surface-2 p-1">
+      <div className="grid grid-cols-3 gap-1 rounded-full bg-surface-2 p-1">
         {OPCIONES.map((o) => (
           <button
             key={o.id}
             type="button"
             onClick={() => setApariencia(o.id)}
             className={cn(
-              "h-10 rounded-md text-sm font-medium",
+              "h-10 rounded-full text-sm font-medium",
               apariencia === o.id
                 ? "bg-accent text-accent-fg"
                 : "text-muted",

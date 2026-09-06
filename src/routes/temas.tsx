@@ -4,6 +4,7 @@ import { ChevronDown, ChevronUp, GripVertical, Plus, Trash2 } from "lucide-react
 import { toast } from "sonner";
 import { AppShell } from "@/components/app-shell";
 import { BloqueMarca, PaletaColor } from "@/components/bloque-marca";
+import { HojaOpciones } from "@/components/hoja-opciones";
 import { COLOR_BLOQUE_CLASE, COLORES_BLOQUE, siguienteColor } from "@/lib/oporitmo/bloques";
 import { diasEntre, formatHoras, formatMinutos, hoyISO } from "@/lib/oporitmo/math";
 import { parseListado } from "@/lib/oporitmo/temarios";
@@ -38,6 +39,9 @@ function TemasPage() {
   const [nombreBloque, setNombreBloque] = useState("");
   const [colorNuevo, setColorNuevo] = useState(siguienteColor([]));
   const [agrupar, setAgrupar] = useState(true);
+  const [estadoId, setEstadoId] = useState<number | null>(null);
+  const [bloqueTemaId, setBloqueTemaId] = useState<number | null>(null);
+  const [selTema, setSelTema] = useState<number | null>(null);
 
   const temas = useOpoStore((s) => s.temas);
   const bloques = useOpoStore((s) => s.bloques);
@@ -156,25 +160,28 @@ function TemasPage() {
         cambia con las flechas.
       </p>
 
+      <div className="xl:mt-4 xl:grid xl:grid-cols-[minmax(0,_1fr)_20rem] xl:items-start xl:gap-6">
+      <div>
+
       <div className="mt-4 flex flex-col gap-2 sm:flex-row">
         <input
           type="search"
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
           placeholder="Buscar tema"
-          className="h-11 flex-1 rounded-md border border-line bg-surface px-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+          className="h-11 flex-1 rounded-full border-0 bg-surface-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
         />
         <button
           type="button"
           onClick={() => setPegar((v) => !v)}
-          className="h-11 rounded-md border border-line bg-surface px-4 text-sm font-medium"
+          className="h-11 rounded-full border-0 bg-surface-2 px-4 text-sm font-medium"
         >
           {pegar ? "Cerrar listado" : "Pegar listado"}
         </button>
       </div>
 
       {pegar && (
-        <div className="mt-3 rounded-xl border border-line bg-surface p-4">
+        <div className="mt-3 card p-4">
           <p className="text-sm text-muted">
             Un título por línea. Si vienen numerados, se quita el número. El
             total de temas pasará a ser el de las líneas; los estados se
@@ -185,7 +192,7 @@ function TemasPage() {
             onChange={(e) => setBorrador(e.target.value)}
             rows={8}
             placeholder={"Calentamiento\nCondición física\nJuego motor"}
-            className="mt-3 w-full rounded-md border border-line bg-bg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+            className="mt-3 w-full rounded-2xl border-0 bg-surface-2 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
           />
           <p className="mt-2 text-xs text-muted">
             {parseados.length === 0
@@ -195,14 +202,14 @@ function TemasPage() {
           <button
             type="button"
             onClick={() => aplicar(parseados)}
-            className="mt-3 h-11 w-full rounded-md bg-accent px-4 text-sm font-semibold text-accent-fg"
+            className="mt-3 h-11 w-full rounded-full bg-accent px-4 text-sm font-semibold text-accent-fg"
           >
             Aplicar listado
           </button>
         </div>
       )}
 
-      <section className="mt-4 rounded-xl border border-line bg-surface p-4">
+      <section className="mt-4 card p-4">
         <div className="flex items-center justify-between gap-2">
           <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted">
             Bloques
@@ -213,7 +220,7 @@ function TemasPage() {
               setColorNuevo(siguienteColor(bloques.map((b) => b.color)));
               setNuevo((v) => !v);
             }}
-            className="inline-flex h-10 items-center gap-1 rounded-md px-2 text-sm font-medium text-accent"
+            className="inline-flex h-10 items-center gap-1 rounded-full px-2 text-sm font-medium text-accent"
           >
             <Plus className="size-4" strokeWidth={2} />
             Nuevo
@@ -242,13 +249,13 @@ function TemasPage() {
                 key={`${b.id}-${b.nombre}`}
                 defaultValue={b.nombre}
                 onBlur={(e) => renombrarBloque(b.id, e.target.value)}
-                className="h-11 min-w-0 flex-1 rounded-md bg-bg px-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent"
+                className="h-11 min-w-0 flex-1 rounded-full bg-bg px-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent"
               />
               <button
                 type="button"
                 aria-label={`Borrar ${b.nombre}`}
                 onClick={() => borrarBloque(b.id)}
-                className="grid size-11 shrink-0 place-items-center rounded-md text-muted"
+                className="grid size-11 shrink-0 place-items-center rounded-full text-muted"
               >
                 <Trash2 className="size-4" strokeWidth={1.75} />
               </button>
@@ -262,7 +269,7 @@ function TemasPage() {
               value={nombreBloque}
               onChange={(e) => setNombreBloque(e.target.value)}
               placeholder="Nombre del bloque"
-              className="h-11 w-full rounded-md border border-line bg-surface px-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+              className="h-11 w-full rounded-full border-0 bg-surface-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
             />
             <PaletaColor value={colorNuevo} onChange={setColorNuevo} />
             <button
@@ -276,7 +283,7 @@ function TemasPage() {
                 setNombreBloque("");
                 setNuevo(false);
               }}
-              className="h-11 w-full rounded-md bg-accent text-sm font-semibold text-accent-fg"
+              className="h-11 w-full rounded-full bg-accent text-sm font-semibold text-accent-fg"
             >
               Crear bloque
             </button>
@@ -284,17 +291,15 @@ function TemasPage() {
         )}
       </section>
 
-      <div className="mt-4 flex gap-1 overflow-x-auto pb-1">
+      <div className="mt-4 flex flex-wrap gap-1 pb-1">
         {chips.map((f) => (
           <button
             key={f.id}
             type="button"
             onClick={() => setFiltro(f.id)}
             className={cn(
-              "h-10 shrink-0 rounded-md px-3 text-sm font-medium",
-              filtro === f.id
-                ? "bg-accent text-accent-fg"
-                : "bg-surface-2 text-muted",
+              "pill shrink-0",
+              filtro === f.id ? "pill-on" : "pill-off",
             )}
           >
             {f.label}
@@ -306,10 +311,8 @@ function TemasPage() {
             type="button"
             onClick={() => setFiltro(`bloque:${b.id}`)}
             className={cn(
-              "inline-flex h-10 shrink-0 items-center gap-2 rounded-md px-3 text-sm font-medium",
-              filtro === `bloque:${b.id}`
-                ? "bg-accent text-accent-fg"
-                : "bg-surface-2 text-muted",
+              "pill shrink-0 gap-2",
+              filtro === `bloque:${b.id}` ? "pill-on" : "pill-off",
             )}
           >
             <BloqueMarca color={b.color} className="size-2" />
@@ -354,9 +357,11 @@ function TemasPage() {
                 setArrastrando={setArrastrando}
                 reordenarTemas={reordenarTemas}
                 moverTema={moverTema}
-                cambiarEstado={cambiarEstado}
                 renombrarTema={renombrarTema}
-                asignarBloque={asignarBloque}
+                seleccionado={selTema === t.id}
+                onSeleccionar={() => setSelTema(t.id)}
+                onElegirEstado={() => setEstadoId(t.id)}
+                onElegirBloque={() => setBloqueTemaId(t.id)}
               />
             ))}
           </ul>
@@ -364,13 +369,224 @@ function TemasPage() {
       ))}
 
       {lista.length === 0 && (
-        <p className="mt-6 text-sm text-muted">
-          {filtro === "olvidados"
-            ? "Ningún tema se está enfriando. Cuando pase de largo el intervalo, saldrá aquí."
-            : "Ningún tema coincide con ese filtro."}
-        </p>
+        <div className="card mt-6 px-5 py-6">
+          <p className="font-medium">
+            {filtro === "olvidados"
+              ? "Ningún tema se está enfriando."
+              : "Nada con ese filtro."}
+          </p>
+          <p className="mt-1 text-sm text-muted">
+            {filtro === "olvidados"
+              ? "Cuando pase el intervalo de repaso, saldrá aquí."
+              : "Prueba otro filtro o pega un listado."}
+          </p>
+          {filtro !== "todos" ? (
+            <button
+              type="button"
+              onClick={() => setFiltro("todos")}
+              className="mt-4 h-11 rounded-full bg-accent px-5 text-sm font-semibold text-accent-fg"
+            >
+              Ver todos
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setPegar(true)}
+              className="mt-4 h-11 rounded-full bg-accent px-5 text-sm font-semibold text-accent-fg"
+            >
+              Pegar listado
+            </button>
+          )}
+        </div>
       )}
+
+      </div>
+
+      <TemaInspector id={selTema} />
+      </div>
+
+      <HojaOpciones
+        open={estadoId != null}
+        onOpenChange={(open) => {
+          if (!open) setEstadoId(null);
+        }}
+        titulo="Estado"
+        descripcion={temas.find((t) => t.id === estadoId)?.titulo}
+        opciones={(Object.keys(ESTADOS) as Estado[]).map((k) => ({
+          id: k,
+          label: ESTADOS[k],
+        }))}
+        valor={temas.find((t) => t.id === estadoId)?.estado ?? ""}
+        onElegir={(id) => {
+          if (estadoId != null) cambiarEstado(estadoId, id as Estado);
+        }}
+      />
+      <HojaOpciones
+        open={bloqueTemaId != null}
+        onOpenChange={(open) => {
+          if (!open) setBloqueTemaId(null);
+        }}
+        titulo="Bloque"
+        descripcion={temas.find((t) => t.id === bloqueTemaId)?.titulo}
+        opciones={[
+          { id: "", label: "Sin bloque" },
+          ...bloques.map((b) => ({ id: b.id, label: b.nombre })),
+        ]}
+        valor={temas.find((t) => t.id === bloqueTemaId)?.bloqueId ?? ""}
+        onElegir={(id) => {
+          if (bloqueTemaId != null) asignarBloque(bloqueTemaId, id || null);
+        }}
+      />
     </AppShell>
+  );
+}
+
+function TemaInspector({ id }: { id: number | null }) {
+  const temas = useOpoStore((s) => s.temas);
+  const bloques = useOpoStore((s) => s.bloques);
+  const vueltas = useOpoStore((s) => s.config.vueltas);
+  const simulacros = useOpoStore((s) => s.simulacros);
+  const cambiarEstado = useOpoStore((s) => s.cambiarEstado);
+  const asignarBloque = useOpoStore((s) => s.asignarBloque);
+  const renombrarTema = useOpoStore((s) => s.renombrarTema);
+  const t = temas.find((x) => x.id === id);
+  const nVueltas = vueltas.length;
+  const tiempos = simulacros
+    .filter((s) => s.temaId === t?.id)
+    .sort((a, b) => a.fecha.localeCompare(b.fecha) || a.id.localeCompare(b.id));
+  const olvidado = t ? esOlvidado(t, vueltas) : false;
+  const dias = t?.ultimoTrabajo ? diasEntre(t.ultimoTrabajo, hoyISO()) : null;
+
+  return (
+    <aside className="sticky top-8 mt-6 hidden xl:block xl:mt-0">
+      <div className="card p-5">
+        {!t ? (
+          <>
+            <p className="kicker">Detalle</p>
+            <p className="mt-2 text-sm text-muted">
+              Elige un tema de la lista para cambiar estado, bloque y ver
+              tiempos.
+            </p>
+          </>
+        ) : (
+          <>
+            <p className="kicker">Tema {t.id}</p>
+            <input
+              key={`${t.id}-${t.titulo}`}
+              defaultValue={t.titulo}
+              onBlur={(e) => renombrarTema(t.id, e.target.value)}
+              aria-label={`Nombre del tema ${t.id}`}
+              className="mt-1 h-11 w-full bg-transparent font-display text-xl font-semibold focus:outline-none"
+            />
+            <p className="mt-1 text-sm text-muted">
+              {dias === null
+                ? "Nunca trabajado"
+                : `Último: hace ${dias} día${dias === 1 ? "" : "s"}`}
+              {" · "}
+              {formatHoras(t.tiempoInvertido)} dedicadas
+              {t.vuelta > 0 &&
+                ` · ${
+                  t.vuelta > nVueltas
+                    ? "Preparado"
+                    : `${ordinalVuelta(t.vuelta)} de ${nVueltas}`
+                }`}
+            </p>
+            {(t.pendiente || olvidado) && (
+              <p className="mt-2 text-sm">
+                {t.pendiente && <span className="text-accent">A medias</span>}
+                {t.pendiente && olvidado && " · "}
+                {olvidado && <span className="text-warn">Olvidado</span>}
+              </p>
+            )}
+
+            <p className="kicker mt-5">Estado</p>
+            <ul className="mt-2 overflow-hidden rounded-2xl bg-surface-2">
+              {(Object.keys(ESTADOS) as Estado[]).map((k) => (
+                <li key={k}>
+                  <button
+                    type="button"
+                    onClick={() => cambiarEstado(t.id, k)}
+                    className={cn(
+                      "flex h-11 w-full items-center justify-between px-3 text-left text-sm",
+                      t.estado === k && "font-semibold text-accent",
+                    )}
+                  >
+                    {ESTADOS[k]}
+                    {t.estado === k && " ·"}
+                  </button>
+                </li>
+              ))}
+            </ul>
+
+            {bloques.length > 0 && (
+              <>
+                <p className="kicker mt-5">Bloque</p>
+                <ul className="mt-2 flex flex-wrap gap-1">
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => asignarBloque(t.id, null)}
+                      className={cn(
+                        "pill",
+                        !t.bloqueId ? "pill-on" : "pill-off",
+                      )}
+                    >
+                      Sin bloque
+                    </button>
+                  </li>
+                  {bloques.map((b) => (
+                    <li key={b.id}>
+                      <button
+                        type="button"
+                        onClick={() => asignarBloque(t.id, b.id)}
+                        className={cn(
+                          "pill gap-2",
+                          t.bloqueId === b.id ? "pill-on" : "pill-off",
+                        )}
+                      >
+                        <BloqueMarca color={b.color} className="size-2" />
+                        {b.nombre}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+
+            {tiempos.length > 0 && (
+              <>
+                <p className="kicker mt-5">Simulacros</p>
+                <ul className="mt-2 space-y-1">
+                  {tiempos.slice(-6).map((s, idx, arr) => {
+                    const prev = idx > 0 ? arr[idx - 1] : null;
+                    const delta = prev ? s.minutos - prev.minutos : 0;
+                    return (
+                      <li
+                        key={s.id}
+                        className="flex justify-between text-sm text-muted"
+                      >
+                        <span>
+                          {s.fecha.slice(8, 10)}/{s.fecha.slice(5, 7)}
+                        </span>
+                        <span className="tabular-nums text-ink">
+                          {formatMinutos(s.minutos)}
+                          {delta < 0 && (
+                            <span className="text-accent"> · más rápido</span>
+                          )}
+                          {delta > 0 && (
+                            <span className="text-warn"> · más lento</span>
+                          )}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </>
+            )}
+          </>
+        )}
+      </div>
+    </aside>
   );
 }
 
@@ -383,9 +599,11 @@ function TemaFila({
   setArrastrando,
   reordenarTemas,
   moverTema,
-  cambiarEstado,
   renombrarTema,
-  asignarBloque,
+  seleccionado,
+  onSeleccionar,
+  onElegirEstado,
+  onElegirBloque,
 }: {
   t: Tema & { dias: number | null };
   i: number;
@@ -395,9 +613,11 @@ function TemaFila({
   setArrastrando: (id: number | null) => void;
   reordenarTemas: (a: number, b: number) => void;
   moverTema: (id: number, d: -1 | 1) => void;
-  cambiarEstado: (id: number, e: Estado) => void;
   renombrarTema: (id: number, titulo: string) => void;
-  asignarBloque: (id: number, bloqueId: string | null) => void;
+  seleccionado: boolean;
+  onSeleccionar: () => void;
+  onElegirEstado: () => void;
+  onElegirBloque: () => void;
 }) {
   const bloques = useOpoStore((s) => s.bloques);
   const vueltas = useOpoStore((s) => s.config.vueltas);
@@ -411,6 +631,7 @@ function TemaFila({
 
   return (
     <li
+      onClick={onSeleccionar}
       onDragOver={(e) => {
         if (!sePuedeOrdenar || arrastrando == null) return;
         e.preventDefault();
@@ -420,8 +641,9 @@ function TemaFila({
         setArrastrando(null);
       }}
       className={cn(
-        "rounded-lg border border-line bg-surface px-3 py-3",
+        "card px-3 py-3",
         arrastrando === t.id && "opacity-50",
+        seleccionado && "ring-2 ring-ink",
       )}
     >
       <div className="flex items-start gap-2">
@@ -438,7 +660,7 @@ function TemaFila({
               aria-label="Subir"
               disabled={i === 0}
               onClick={() => moverTema(t.id, -1)}
-              className="grid size-8 place-items-center rounded-md text-muted disabled:opacity-30"
+              className="grid size-8 place-items-center rounded-full text-muted disabled:opacity-30"
             >
               <ChevronUp className="size-4" strokeWidth={2} />
             </button>
@@ -455,7 +677,7 @@ function TemaFila({
               aria-label="Bajar"
               disabled={i === total - 1}
               onClick={() => moverTema(t.id, 1)}
-              className="grid size-8 place-items-center rounded-md text-muted disabled:opacity-30"
+              className="grid size-8 place-items-center rounded-full text-muted disabled:opacity-30"
             >
               <ChevronDown className="size-4" strokeWidth={2} />
             </button>
@@ -470,15 +692,16 @@ function TemaFila({
               key={`${t.id}-${t.titulo}`}
               defaultValue={t.titulo}
               onBlur={(e) => renombrarTema(t.id, e.target.value)}
+              aria-label={`Nombre del tema ${t.id}`}
               className="h-11 min-w-0 flex-1 bg-transparent text-sm font-semibold focus:outline-none"
             />
             {t.pendiente && (
-              <span className="shrink-0 rounded-md bg-accent-soft px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-accent">
+              <span className="shrink-0 rounded-full bg-accent-soft px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-accent">
                 A medias
               </span>
             )}
             {olvidado && (
-              <span className="shrink-0 rounded-md bg-surface-2 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-warn">
+              <span className="shrink-0 rounded-full bg-surface-2 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-warn">
                 Olvidado
               </span>
             )}
@@ -524,31 +747,28 @@ function TemaFila({
             </ul>
           )}
           {bloques.length > 0 && (
-          <select
-            value={t.bloqueId ?? ""}
-            onChange={(e) => asignarBloque(t.id, e.target.value || null)}
-            className="mt-2 h-11 w-full rounded-md border border-line bg-bg px-2 text-sm"
-          >
-            <option value="">Sin bloque</option>
-            {bloques.map((b) => (
-              <option key={b.id} value={b.id}>
-                {b.nombre}
-              </option>
-            ))}
-          </select>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onElegirBloque();
+              }}
+              className="mt-2 h-10 rounded-full bg-surface-2 px-3 text-sm font-medium xl:hidden"
+            >
+              {bloque?.nombre ?? "Sin bloque"}
+            </button>
           )}
         </div>
-        <select
-          value={t.estado}
-          onChange={(e) => cambiarEstado(t.id, e.target.value as Estado)}
-          className="h-11 shrink-0 rounded-md border border-line bg-bg px-2 text-sm"
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onElegirEstado();
+          }}
+          className="h-11 shrink-0 rounded-full bg-surface-2 px-3 text-sm font-medium xl:hidden"
         >
-          {(Object.keys(ESTADOS) as Estado[]).map((k) => (
-            <option key={k} value={k}>
-              {ESTADOS[k]}
-            </option>
-          ))}
-        </select>
+          {ESTADOS[t.estado]}
+        </button>
       </div>
     </li>
   );

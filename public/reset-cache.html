@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="Cache-Control" content="no-store" />
+    <title>OpoRitmo — recargar limpio</title>
+    <style>
+      body {
+        margin: 0;
+        min-height: 100dvh;
+        display: grid;
+        place-items: center;
+        background: #f3eee4;
+        color: #1c1914;
+        font: 16px/1.45 system-ui, sans-serif;
+        text-align: center;
+        padding: 24px;
+      }
+      button {
+        height: 44px;
+        margin-top: 16px;
+        padding: 0 20px;
+        border: 0;
+        border-radius: 999px;
+        background: #2f5d4a;
+        color: #f7f3ea;
+        font-weight: 600;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div>
+      <p>Limpiando datos locales y caché de este navegador…</p>
+      <p id="estado"></p>
+    </div>
+    <script>
+      (async function () {
+        var estado = document.getElementById("estado");
+        try {
+          try { localStorage.clear(); } catch (e) {}
+          try { sessionStorage.clear(); } catch (e) {}
+          if (navigator.serviceWorker) {
+            var regs = await navigator.serviceWorker.getRegistrations();
+            await Promise.all(regs.map(function (r) { return r.unregister(); }));
+          }
+          if (window.caches) {
+            var keys = await caches.keys();
+            await Promise.all(keys.map(function (k) { return caches.delete(k); }));
+          }
+          estado.textContent = "Listo. Entrando…";
+          location.replace("/?reset=" + Date.now());
+        } catch (e) {
+          estado.textContent = "Pulsa para entrar.";
+          var b = document.createElement("button");
+          b.textContent = "Abrir OpoRitmo";
+          b.onclick = function () { location.replace("/"); };
+          document.body.appendChild(b);
+        }
+      })();
+    </script>
+  </body>
+</html>

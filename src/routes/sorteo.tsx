@@ -37,6 +37,8 @@ function leerRun(): SimulacroRun | null {
 function SorteoPage() {
   const [ready, setReady] = useState(false);
   const [extraidos, setExtraidos] = useState<number[]>([]);
+  const [mostrando, setMostrando] = useState<number[]>([]);
+  const [animando, setAnimando] = useState(false);
   const [sims, setSims] = useState<{ n: number; hits: number } | null>(null);
   const [elegido, setElegido] = useState<number | null>(null);
   const [run, setRun] = useState<SimulacroRun | null>(null);
@@ -80,10 +82,22 @@ function SorteoPage() {
 
   function unSorteo() {
     const draw = extraerSorteo(config.totalTemas, config.temasSorteo);
-    setExtraidos(draw);
     setSims(null);
-    const prep = draw.find((id) => preparadosIds.has(id));
-    setElegido(prep ?? draw[0] ?? null);
+    setElegido(null);
+    setExtraidos([]);
+    setMostrando([]);
+    setAnimando(true);
+    draw.forEach((id, i) => {
+      window.setTimeout(() => {
+        setMostrando((prev) => [...prev, id]);
+        if (i === draw.length - 1) {
+          setExtraidos(draw);
+          setAnimando(false);
+          const prep = draw.find((n) => preparadosIds.has(n));
+          setElegido(prep ?? draw[0] ?? null);
+        }
+      }, 420 * (i + 1));
+    });
   }
 
   function muchos() {
@@ -95,6 +109,8 @@ function SorteoPage() {
     }
     setSims({ n, hits });
     setExtraidos([]);
+    setMostrando([]);
+    setAnimando(false);
     setElegido(null);
   }
 
@@ -150,28 +166,54 @@ function SorteoPage() {
         <span className="font-semibold text-ink">{formatPct(p)}</span>.
       </p>
 
+      <div className="xl:grid xl:grid-cols-2 xl:items-start xl:gap-6">
+      <div>
       <div className="mt-5 flex gap-2">
         <button
           type="button"
           onClick={unSorteo}
-          className="h-11 flex-1 rounded-md bg-accent px-4 text-sm font-semibold text-accent-fg"
+          disabled={animando}
+          className="h-12 flex-1 rounded-full bg-accent px-4 text-sm font-semibold text-accent-fg disabled:opacity-40"
         >
-          Extraer ahora
+          {animando ? "Saliendo…" : "Extraer ahora"}
         </button>
         <button
           type="button"
           onClick={muchos}
-          className="h-11 flex-1 rounded-md border border-line bg-surface px-4 text-sm font-medium"
+          disabled={animando}
+          className="h-12 flex-1 rounded-full bg-surface-2 px-4 text-sm font-medium disabled:opacity-40"
         >
-          2.000 sorteos
+          Simular 2.000 sorteos
         </button>
       </div>
 
-      {extraidos.length > 0 && (
-        <section className="mt-5 rounded-xl border border-line bg-surface p-5">
-          <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted">
-            Extraídos
-          </p>
+      {mostrando.length > 0 && (
+        <section className="mt-5 card p-5">
+          <p className="kicker">El tribunal extrae</p>
+          <ul className="mt-4 flex flex-wrap justify-center gap-3">
+            {mostrando.map((id) => {
+              const ok = preparadosIds.has(id);
+              return (
+                <li
+                  key={id}
+                  className={cn(
+                    "opo-in grid size-20 place-items-center rounded-full",
+                    ok ? "card-hero" : "bg-surface-2",
+                  )}
+                >
+                  <span className="font-display text-2xl font-semibold tabular-nums">
+                    {id}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
+
+      {extraidos.length > 0 && !animando && (
+        <section className="mt-5 card p-5">
+          <p className="kicker">Elige el que desarrollarías</p>
           <ul className="mt-3 flex flex-col gap-2">
             {extraidos.map((id) => {
               const ok = preparadosIds.has(id);
@@ -184,7 +226,7 @@ function SorteoPage() {
                     type="button"
                     onClick={() => setElegido(id)}
                     className={cn(
-                      "flex h-11 w-full items-center justify-between rounded-md px-3 text-left text-sm",
+                      "flex h-12 w-full items-center justify-between rounded-full px-4 text-left text-sm",
                       activo
                         ? "bg-accent text-accent-fg"
                         : ok
@@ -216,12 +258,7 @@ function SorteoPage() {
                 key={n}
                 type="button"
                 onClick={() => actualizarConfig({ duracionSimulacro: n })}
-                className={cn(
-                  "h-11 rounded-md px-3 text-sm font-medium",
-                  duracion === n
-                    ? "bg-accent text-accent-fg"
-                    : "bg-surface-2 text-muted",
-                )}
+                className={cn("pill", duracion === n ? "pill-on" : "pill-off")}
               >
                 {n} min
               </button>
@@ -241,29 +278,26 @@ function SorteoPage() {
                   duracionSimulacro: Number(e.target.value) || 90,
                 })
               }
-              className="h-11 w-full rounded-md border border-line bg-bg px-3 tabular-nums focus:outline-none focus:ring-2 focus:ring-accent"
+              className="h-11 w-full rounded-full border-0 bg-surface-2 px-3 tabular-nums focus:outline-none focus:ring-2 focus:ring-accent"
             />
           </label>
           <button
             type="button"
             onClick={empezar}
             disabled={elegido == null}
-            className="mt-4 h-11 w-full rounded-md bg-accent text-sm font-semibold text-accent-fg disabled:opacity-40"
+            className="mt-4 h-12 w-full rounded-full bg-accent text-sm font-semibold text-accent-fg disabled:opacity-40"
           >
             Empezar simulacro
           </button>
-          <p className="mt-2 text-xs text-muted">
-            Elige el tema que desarrollarías. El reloj no guarda el escrito, solo
-            el tiempo.
+          <p className="mt-2 text-sm text-muted">
+            El reloj no guarda el escrito, solo el tiempo.
           </p>
         </section>
       )}
 
       {sims && (
-        <section className="mt-5 rounded-xl border border-line bg-surface p-5">
-          <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted">
-            Simulación
-          </p>
+        <section className="mt-5 card p-5">
+          <p className="kicker">Simulación</p>
           <p className="mt-2 font-display text-4xl font-semibold tabular-nums text-accent">
             {formatPct(sims.hits / sims.n)}
           </p>
@@ -274,11 +308,11 @@ function SorteoPage() {
         </section>
       )}
 
+      </div>
+
       {historial.length > 0 && (
-        <section className="mt-5 rounded-xl border border-line bg-surface p-5">
-          <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted">
-            Últimos simulacros
-          </p>
+        <section className="mt-5 card p-5">
+          <p className="kicker">Últimos simulacros</p>
           <ul className="mt-3 space-y-2">
             {historial.map((s) => {
               const titulo =
@@ -288,7 +322,7 @@ function SorteoPage() {
               return (
                 <li
                   key={s.id}
-                  className="flex items-baseline justify-between gap-3 rounded-md bg-surface-2 px-3 py-3"
+                  className="flex items-baseline justify-between gap-3 rounded-2xl bg-surface-2 px-3 py-3"
                 >
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold">{titulo}</p>
@@ -312,6 +346,7 @@ function SorteoPage() {
           </ul>
         </section>
       )}
+      </div>
     </AppShell>
   );
 }

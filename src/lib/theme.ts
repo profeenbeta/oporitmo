@@ -16,4 +16,6 @@ export function aplicarApariencia(apariencia: Apariencia) {
   meta?.setAttribute("content", dark ? "#14110e" : "#f3eee4");
 }
 
-export const THEME_BOOT_SCRIPT = `(function(){try{var r=localStorage.getItem("${THEME_STORAGE_KEY}");var t=r?JSON.parse(r).state.apariencia:"sistema";var d=t==="oscuro"||(t!=="claro"&&window.matchMedia("(prefers-color-scheme: dark)").matches);if(d)document.documentElement.classList.add("dark");document.documentElement.style.colorScheme=d?"dark":"light";}catch(e){}})();`;
+export const THEME_BOOT_SCRIPT = `(function(){try{if(/[?&]reset=/.test(location.search)){localStorage.removeItem("${THEME_STORAGE_KEY}");sessionStorage.clear();}}catch(e){}
+try{var r=localStorage.getItem("${THEME_STORAGE_KEY}");var t=r?JSON.parse(r).state.apariencia:"sistema";var d=t==="oscuro"||(t!=="claro"&&window.matchMedia("(prefers-color-scheme: dark)").matches);if(d)document.documentElement.classList.add("dark");document.documentElement.style.colorScheme=d?"dark":"light";}catch(e){try{localStorage.removeItem("${THEME_STORAGE_KEY}");}catch(x){}}}
+})();`;

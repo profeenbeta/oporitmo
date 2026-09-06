@@ -27,6 +27,7 @@ Pensada para maestros, secundaria y cualquier oposición con temario numerado y 
 
 - **Qué hacer hoy** — propuesta del día según tu ritmo, sin reorganizar todo el plan.
 - **Calendario flexible** — aguanta días malos y se reajusta sin romperse.
+- **Días libres** — vacaciones o guardias, desde el detalle del día.
 - **Horas distintas por día de la semana** — y posibilidad de cambiar solo las de hoy.
 - **Periodo de estudio** — día de inicio y día de fin configurables.
 - **Temas a medias** — si no terminas uno, al día siguiente aparece para acabarlo.
@@ -55,9 +56,13 @@ Pensada para maestros, secundaria y cualquier oposición con temario numerado y 
 ### Uso diario
 
 - **Frase de ánimo al terminar un tema** (con confeti).
+- **Reentrada calmada** — si vuelves tras varios días, Hoy te indica por dónde retomar, sin culpa.
+- **Ritmo respecto a la fecha** — una frase en Hoy sobre si tu ritmo encaja con el examen (sin semáforo ni porcentajes de pánico).
+- **Días libres** — márcalos en el calendario (vacaciones, guardias); ese día no propone estudio y el plan se reajusta.
+- **Copia de seguridad** — sin cuenta, puedes guardar y recuperar el plan con un archivo en el dispositivo.
 - **Modo claro / oscuro / sistema**.
 - **Sin registro obligatorio** — los datos pueden quedarse solo en el dispositivo.
-- **Cuenta opcional** (Google o X) — para sincronizar entre móvil y ordenador.
+- **Cuenta opcional** (Google, X o correo) — para sincronizar entre móvil y ordenador.
 - **Instalable en el móvil** como PWA (Añadir a pantalla de inicio).
 
 ---
@@ -80,7 +85,7 @@ Pensada para maestros, secundaria y cualquier oposición con temario numerado y 
 4. Configura las vueltas de repaso en Ajustes.
 5. Usa la pestaña **«Hoy»** como punto de partida cada jornada.
 
-Si no inicias sesión, los datos se guardan en el navegador de ese dispositivo. Si inicias sesión, se sincronizan con tu cuenta.
+Si no inicias sesión, los datos se guardan en el navegador de ese dispositivo. En Ajustes puedes **guardar una copia** del plan y recuperarla después. Si inicias sesión, se sincronizan con tu cuenta.
 
 ---
 
@@ -163,5 +168,6 @@ Puedes usar, copiar, modificar y distribuir el software, con la condición de ma
 **Profe en Beta** — maestro de Educación Primaria (Educación Física) y aficionado a las herramientas útiles hechas con paciencia (y un poco de IA).
 
 - X: [@ProfeEnBeta](https://x.com/ProfeEnBeta)
+- App: [oporitmo.es](https://oporitmo.es)
 
 Hecha con ayuda de IA, orientada a opositores reales, no a vender cursos.

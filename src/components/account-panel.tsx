@@ -1,3 +1,4 @@
+import { EmailAuthForm } from "@/components/email-auth-form";
 import { GROK_PROVIDERS, authEnabled, signIn, signOut } from "@/lib/auth/client";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { useSyncStatus } from "@/lib/oporitmo/sync-status";
@@ -6,7 +7,7 @@ import { cn } from "@/lib/utils";
 export function AccountPanel({
   callbackURL = "/config",
   titulo = "Entra para guardar",
-  descripcion = "Con Google o X el temario se guarda y lo recuperas en el móvil o en otro ordenador. Sin cuenta, solo queda en este navegador.",
+  descripcion = "Con Google, X o un correo el temario se guarda y lo recuperas en el móvil o en otro ordenador. Sin cuenta, solo queda en este navegador.",
   botonesAcento = true,
   numero,
   onIntentarEntrar,
@@ -32,7 +33,7 @@ export function AccountPanel({
   if (user) {
     const label = user.displayName ?? user.primaryEmail ?? "Cuenta";
     return (
-      <section className="rounded-xl border border-line bg-surface p-5">
+      <section className="card p-5">
         <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted">
           {numero ? `${numero} · Cuenta` : "Cuenta"}
         </p>
@@ -64,7 +65,7 @@ export function AccountPanel({
         <button
           type="button"
           onClick={() => void signOut()}
-          className="mt-4 h-11 w-full rounded-md border border-line text-sm font-medium"
+          className="mt-4 h-11 w-full rounded-full bg-surface-2 text-sm font-medium"
         >
           Salir
         </button>
@@ -73,7 +74,7 @@ export function AccountPanel({
   }
 
   return (
-    <section className="rounded-xl border border-line bg-surface p-5">
+    <section className="card p-5">
       <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted">
         {numero ? `${numero} · Cuenta` : "Cuenta"}
       </p>
@@ -89,15 +90,18 @@ export function AccountPanel({
               signIn(p.providerId, { callbackURL });
             }}
             className={cn(
-              "h-11 w-full rounded-md text-sm font-semibold",
+              "h-11 w-full rounded-full text-sm font-semibold",
               botonesAcento
                 ? "bg-accent text-accent-fg hover:opacity-90"
-                : "border border-line bg-bg font-medium hover:bg-surface-2",
+                : "bg-surface-2 font-medium",
             )}
           >
             Continuar con {p.label}
           </button>
         ))}
+      </div>
+      <div className="mt-4">
+        <EmailAuthForm onIntentar={onIntentarEntrar} />
       </div>
     </section>
   );

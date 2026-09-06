@@ -9,7 +9,10 @@ export function PwaRegister() {
   useEffect(() => {
     if (!import.meta.env.PROD) return;
     if (!("serviceWorker" in navigator)) return;
-    void navigator.serviceWorker.register("/sw.js?v=3");
+    void navigator.serviceWorker.register("/sw.js?v=7").then((reg) => {
+      void reg.update();
+      if (reg.waiting) reg.waiting.postMessage({ type: "SKIP" });
+    });
   }, []);
   return null;
 }
@@ -42,7 +45,7 @@ export function PwaInstall() {
   }, []);
 
   return (
-    <section className="rounded-xl border border-line bg-surface p-5">
+    <section className="card p-5">
       <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted">
         En el móvil
       </p>
@@ -62,7 +65,7 @@ export function PwaInstall() {
             <button
               type="button"
               onClick={() => void evento.prompt()}
-              className="mt-4 h-11 w-full rounded-md bg-accent text-sm font-semibold text-accent-fg"
+              className="mt-4 h-11 w-full rounded-full bg-accent text-sm font-semibold text-accent-fg"
             >
               Instalar OpoRitmo
             </button>

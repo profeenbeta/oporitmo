@@ -15,6 +15,9 @@ import { Route as ConfigRouteImport } from './routes/config'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as SorteoRouteImport } from './routes/sorteo'
 import { Route as TemasRouteImport } from './routes/temas'
+import { Route as AuthOauthBridgeRouteImport } from './routes/auth/oauth-bridge'
+import { Route as AuthOauthLandRouteImport } from './routes/auth/oauth-land'
+import { Route as AuthOauthStartRouteImport } from './routes/auth/oauth-start'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const IndexRoute = IndexRouteImport.update({
@@ -47,6 +50,21 @@ const TemasRoute = TemasRouteImport.update({
   path: '/temas',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthOauthBridgeRoute = AuthOauthBridgeRouteImport.update({
+  id: '/auth/oauth-bridge',
+  path: '/auth/oauth-bridge',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthOauthLandRoute = AuthOauthLandRouteImport.update({
+  id: '/auth/oauth-land',
+  path: '/auth/oauth-land',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthOauthStartRoute = AuthOauthStartRouteImport.update({
+  id: '/auth/oauth-start',
+  path: '/auth/oauth-start',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -60,6 +78,9 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/sorteo': typeof SorteoRoute
   '/temas': typeof TemasRoute
+  '/auth/oauth-bridge': typeof AuthOauthBridgeRoute
+  '/auth/oauth-land': typeof AuthOauthLandRoute
+  '/auth/oauth-start': typeof AuthOauthStartRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesByTo {
@@ -69,6 +90,9 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/sorteo': typeof SorteoRoute
   '/temas': typeof TemasRoute
+  '/auth/oauth-bridge': typeof AuthOauthBridgeRoute
+  '/auth/oauth-land': typeof AuthOauthLandRoute
+  '/auth/oauth-start': typeof AuthOauthStartRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesById {
@@ -79,6 +103,9 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/sorteo': typeof SorteoRoute
   '/temas': typeof TemasRoute
+  '/auth/oauth-bridge': typeof AuthOauthBridgeRoute
+  '/auth/oauth-land': typeof AuthOauthLandRoute
+  '/auth/oauth-start': typeof AuthOauthStartRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRouteTypes {
@@ -90,6 +117,9 @@ export interface FileRouteTypes {
     | '/login'
     | '/sorteo'
     | '/temas'
+    | '/auth/oauth-bridge'
+    | '/auth/oauth-land'
+    | '/auth/oauth-start'
     | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -99,6 +129,9 @@ export interface FileRouteTypes {
     | '/login'
     | '/sorteo'
     | '/temas'
+    | '/auth/oauth-bridge'
+    | '/auth/oauth-land'
+    | '/auth/oauth-start'
     | '/api/auth/$'
   id:
     | '__root__'
@@ -108,6 +141,9 @@ export interface FileRouteTypes {
     | '/login'
     | '/sorteo'
     | '/temas'
+    | '/auth/oauth-bridge'
+    | '/auth/oauth-land'
+    | '/auth/oauth-start'
     | '/api/auth/$'
   fileRoutesById: FileRoutesById
 }
@@ -118,6 +154,9 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   SorteoRoute: typeof SorteoRoute
   TemasRoute: typeof TemasRoute
+  AuthOauthBridgeRoute: typeof AuthOauthBridgeRoute
+  AuthOauthLandRoute: typeof AuthOauthLandRoute
+  AuthOauthStartRoute: typeof AuthOauthStartRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
@@ -165,6 +204,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TemasRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth/oauth-bridge': {
+      id: '/auth/oauth-bridge'
+      path: '/auth/oauth-bridge'
+      fullPath: '/auth/oauth-bridge'
+      preLoaderRoute: typeof AuthOauthBridgeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/oauth-land': {
+      id: '/auth/oauth-land'
+      path: '/auth/oauth-land'
+      fullPath: '/auth/oauth-land'
+      preLoaderRoute: typeof AuthOauthLandRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/oauth-start': {
+      id: '/auth/oauth-start'
+      path: '/auth/oauth-start'
+      fullPath: '/auth/oauth-start'
+      preLoaderRoute: typeof AuthOauthStartRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -182,6 +242,9 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   SorteoRoute: SorteoRoute,
   TemasRoute: TemasRoute,
+  AuthOauthBridgeRoute: AuthOauthBridgeRoute,
+  AuthOauthLandRoute: AuthOauthLandRoute,
+  AuthOauthStartRoute: AuthOauthStartRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport

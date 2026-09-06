@@ -129,7 +129,7 @@ export function ConfetiAnimo({
         aria-hidden
       />
       <div
-        className="relative w-full max-w-sm rounded-xl border border-line bg-surface px-6 py-8 text-center shadow-lg"
+        className="relative w-full max-w-sm card px-6 py-8 text-center"
         onClick={(e) => e.stopPropagation()}
       >
         <p
@@ -145,7 +145,7 @@ export function ConfetiAnimo({
         <button
           type="button"
           onClick={onCerrar}
-          className="mt-6 h-11 w-full rounded-md bg-accent text-sm font-semibold text-accent-fg"
+          className="mt-6 h-11 w-full rounded-full bg-accent text-sm font-semibold text-accent-fg"
         >
           Seguir
         </button>

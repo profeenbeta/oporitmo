@@ -14,18 +14,15 @@ import { Toaster } from "sonner";
 import appCss from "../styles.css?url";
 
 const APP_NAME = "OpoRitmo";
-const PUBLIC_HOST = "oporitmo.grok.me";
+const OG_IMAGE = "https://oporitmo.es/og.jpg";
 const injectedHost = String(import.meta.env.VITE_PUBLIC_HOSTNAME ?? "").trim();
-/** Preview has no hostname (no og tags). On deploy, VITE_PUBLIC_HOSTNAME is often
- *  an internal *.vercel.app URL that requires SSO — scrapers cannot fetch it. */
+/** Preview has no hostname (no x-banner). Share card always uses oporitmo.es. */
 const host = injectedHost
   ? injectedHost.endsWith(".grok.me")
     ? injectedHost
-    : PUBLIC_HOST
+    : "oporitmo.es"
   : undefined;
-const ogImage = host
-  ? "https://cdn.jsdelivr.net/gh/profeenbeta/oporitmo@main/public/og.jpg"
-  : undefined;
+const xBanner = host ? `https://${host}/x-banner.jpg` : undefined;
 
 export const Route = createRootRoute({
   head: () => ({
@@ -36,13 +33,13 @@ export const Route = createRootRoute({
       {
         name: "description",
         content:
-          "Organiza el temario de oposiciones con vueltas, repasos y sorteos. Sin romper el calendario.",
+          "Tu oposición, a tu ritmo.",
       },
       { property: "og:title", content: APP_NAME },
       {
         property: "og:description",
         content:
-          "Organiza el temario de oposiciones con vueltas, repasos y sorteos. Sin romper el calendario.",
+          "Tu oposición, a tu ritmo.",
       },
       { name: "robots", content: "index, follow, max-image-preview:large" },
       { property: "og:type", content: "website" },
@@ -53,18 +50,29 @@ export const Route = createRootRoute({
       { name: "theme-color", content: "#f3eee4" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: APP_NAME },
-      ...(ogImage
+      { property: "og:image", content: OG_IMAGE },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
+      { name: "twitter:image", content: OG_IMAGE },
+      ...(xBanner
         ? [
-            { property: "og:image", content: ogImage },
-            { property: "og:image:width", content: "1200" },
-            { property: "og:image:height", content: "630" },
-            { property: "og:image:type", content: "image/jpeg" },
-            { property: "og:image:alt", content: "OpoRitmo" },
-            { name: "twitter:image", content: ogImage },
+            { property: "x:game:image", content: xBanner },
+            { property: "x:game:image:width", content: "1200" },
+            { property: "x:game:image:height", content: "264" },
           ]
         : []),
     ],
     links: [
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      {
+        rel: "preconnect",
+        href: "https://fonts.gstatic.com",
+        crossOrigin: "anonymous",
+      },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Source+Sans+3:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap",
+      },
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
       { rel: "manifest", href: "/manifest.webmanifest" },
       { rel: "stylesheet", href: appCss },
@@ -75,11 +83,16 @@ export const Route = createRootRoute({
     scripts: [{ children: THEME_BOOT_SCRIPT }],
   }),
   component: () => (
-    <html lang="es" className="antialiased" suppressHydrationWarning>
+    <html
+      lang="es"
+      className="antialiased"
+      suppressHydrationWarning
+      style={{ background: "#f3eee4" }}
+    >
       <head>
         <HeadContent />
       </head>
-      <body>
+      <body style={{ background: "#f3eee4", margin: 0, minHeight: "100dvh" }}>
         <PreviewHostBridge />
         <ThemeSync />
         <PwaRegister />

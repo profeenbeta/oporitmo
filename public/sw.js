@@ -1,4 +1,4 @@
-const CACHE = "oporitmo-v3";
+const CACHE = "oporitmo-v7";
 
 self.addEventListener("install", (event) => {
   event.waitUntil(self.skipWaiting());
@@ -14,12 +14,20 @@ self.addEventListener("activate", (event) => {
   );
 });
 
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "SKIP") self.skipWaiting();
+});
+
 self.addEventListener("fetch", (event) => {
   const req = event.request;
   if (req.method !== "GET") return;
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
   if (url.pathname.startsWith("/api/")) return;
+  if (url.pathname === "/reset-cache.html") {
+    event.respondWith(fetch(req, { cache: "no-store" }));
+    return;
+  }
 
   const isDoc =
     req.mode === "navigate" ||
@@ -31,8 +39,6 @@ self.addEventListener("fetch", (event) => {
     url.pathname.startsWith("/assets/") ||
     url.pathname.endsWith(".js");
 
-  // HTML y JS con hash: siempre de red. Si se cachea el index, tras publicar
-  // Safari pide módulos viejos y falla con "Importing a module script failed".
   if (isDoc || isScript) {
     event.respondWith(fetch(req).catch(() => caches.match(req)));
     return;

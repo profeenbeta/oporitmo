@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
+import { useNavigate } from "@tanstack/react-router";
 import {
   DEFAULT_HORAS_DIA,
+  enteroAlSalir,
+  enteroEnEdicion,
   formatHoras,
   normalizarHorasDia,
   sumaHoras,
@@ -16,31 +18,80 @@ import { useSyncStatus } from "@/lib/oporitmo/sync-status";
 import { cn } from "@/lib/utils";
 
 const fieldClass =
-  "h-11 w-full rounded-md border border-line bg-bg px-3 focus:outline-none focus:ring-2 focus:ring-accent";
+  "h-11 w-full rounded-full border-0 bg-surface-2 px-3 focus:outline-none focus:ring-2 focus:ring-accent";
 
 const PASO_KEY = "oporitmo-arranque-paso";
 const LOGIN_KEY = "oporitmo-login-desde-arranque";
 
-type Paso = 1 | 2 | 3 | "animo";
+const BIENVENIDA = [
+  {
+    titulo: "Qué hacer hoy",
+    texto:
+      "Te propone el tema del día: estudiar uno nuevo, repasar o acabar el que dejaste a medias.",
+  },
+  {
+    titulo: "Un calendario que aguanta",
+    texto: "Si un día no llegas, se reajusta solo. No hay que rehacer el plan.",
+  },
+  {
+    titulo: "Sorteo",
+    texto:
+      "Extrae temas como el tribunal y ensaya el desarrollo con temporizador.",
+  },
+];
+
+type Paso = 0 | 1 | 2 | 3 | "animo";
+
+function AccionesPaso({
+  continuar,
+  etiqueta = "Siguiente",
+  atras,
+}: {
+  continuar: () => void;
+  etiqueta?: string;
+  atras?: () => void;
+}) {
+  return (
+    <div className="sticky bottom-0 z-10 mt-5 border-t border-line bg-surface pt-3">
+      <button
+        type="button"
+        onClick={continuar}
+        className="h-12 w-full rounded-full bg-accent text-sm font-semibold text-accent-fg"
+      >
+        {etiqueta}
+      </button>
+      {atras ? (
+        <button
+          type="button"
+          onClick={atras}
+          className="mt-2 h-11 w-full text-sm font-medium text-muted"
+        >
+          Atrás
+        </button>
+      ) : null}
+    </div>
+  );
+}
 
 function leerPaso(): Paso {
-  if (typeof window === "undefined") return 1;
+  if (typeof window === "undefined") return 0;
   const v = window.sessionStorage.getItem(PASO_KEY);
+  if (v === "1") return 1;
   if (v === "2") return 2;
   if (v === "3") return 3;
   if (v === "animo") return "animo";
-  return 1;
+  return 0;
 }
 
 export function Onboarding() {
+  const navigate = useNavigate();
   const config = useOpoStore((s) => s.config);
   const completarArranque = useOpoStore((s) => s.completarArranque);
   const actualizarConfig = useOpoStore((s) => s.actualizarConfig);
-  const resetDemo = useOpoStore((s) => s.resetDemo);
   const { user, isPending } = useCurrentUserState();
   const syncStatus = useSyncStatus((s) => s.status);
 
-  const [paso, setPaso] = useState<Paso>(1);
+  const [paso, setPaso] = useState<Paso>(0);
   const [totalTemas, setTotalTemas] = useState(config.totalTemas || 25);
   const [temasSorteo, setTemasSorteo] = useState(config.temasSorteo || 3);
   const [fechaExamen, setFechaExamen] = useState(
@@ -55,8 +106,12 @@ export function Onboarding() {
   const [horasPorDia, setHorasPorDia] = useState(
     normalizarHorasDia(config.horasPorDia ?? DEFAULT_HORAS_DIA),
   );
-  const [especialidad, setEspecialidad] = useState(config.especialidad);
-  const [comunidad, setComunidad] = useState(config.comunidad);
+  const [especialidad, setEspecialidad] = useState(
+    config.especialidad === "Educación Física" ? "" : config.especialidad,
+  );
+  const [comunidad, setComunidad] = useState(
+    config.comunidad === "Andalucía" ? "" : config.comunidad,
+  );
   const hecho = useRef(false);
   const datosRef = useRef({
     totalTemas,
@@ -86,6 +141,14 @@ export function Onboarding() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     window.sessionStorage.setItem(PASO_KEY, String(paso));
+    const irArriba = () => {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    };
+    irArriba();
+    const id = window.requestAnimationFrame(irArriba);
+    return () => window.cancelAnimationFrame(id);
   }, [paso]);
 
   useEffect(() => {
@@ -101,20 +164,14 @@ export function Onboarding() {
     setPaso("animo");
   }, [user, isPending, syncStatus]);
 
-  useEffect(() => {
-    if (paso !== "animo") return;
-    const id = window.setTimeout(() => terminar(), 1600);
-    return () => window.clearTimeout(id);
-  }, [paso]);
-
   function ir(siguiente: Paso) {
     setPaso(siguiente);
   }
 
   function guardarTemario() {
     actualizarConfig({
-      totalTemas,
-      temasSorteo,
+      totalTemas: enteroAlSalir(totalTemas, 1, 80),
+      temasSorteo: enteroAlSalir(temasSorteo, 1, 10),
       especialidad,
       comunidad,
     });
@@ -136,15 +193,25 @@ export function Onboarding() {
       window.sessionStorage.removeItem(PASO_KEY);
       window.sessionStorage.removeItem(LOGIN_KEY);
     }
-    if (useOpoStore.getState().onboardingHecho) return;
-    completarArranque(datosRef.current);
+    if (!useOpoStore.getState().onboardingHecho) {
+      completarArranque(datosRef.current);
+    }
+    void navigate({ to: "/" });
   }
 
-  const n = paso === "animo" ? 3 : paso;
+  const n = paso === "animo" || paso === 0 ? 0 : paso;
+  const enConfig = paso === 1 || paso === 2 || paso === 3;
 
   return (
     <div className="min-h-dvh bg-bg text-ink">
-      <div className="mx-auto max-w-lg px-4 py-8 sm:max-w-xl">
+      <div
+        className={cn(
+          "mx-auto px-4 py-8",
+          paso === 0
+            ? "max-w-lg xl:max-w-6xl xl:px-8 xl:py-10"
+            : "max-w-lg sm:max-w-xl",
+        )}
+      >
         <div className="flex items-start justify-between gap-3">
           <p className="text-xs font-medium uppercase tracking-[0.16em] text-muted">
             OpoRitmo
@@ -152,7 +219,7 @@ export function Onboarding() {
           <ThemeToggle />
         </div>
 
-        {paso !== "animo" && (
+        {enConfig && (
           <>
             <h1 className="mt-2 font-display text-3xl font-semibold">
               Empieza en medio minuto
@@ -174,8 +241,63 @@ export function Onboarding() {
           </>
         )}
 
+        {paso === 0 && (
+          <section className="opo-in mt-8 overflow-visible rounded-[2rem] bg-surface shadow-hero xl:grid xl:min-h-[32rem] xl:grid-cols-2">
+            <div className="flex flex-col justify-center px-6 py-8 sm:px-10 sm:py-12 xl:px-12">
+              <div className="flex items-start justify-between gap-4">
+                <h1 className="font-display text-[2.15rem] font-semibold leading-[1.12] tracking-tight text-accent sm:text-5xl">
+                  Bienvenido a
+                  <br />
+                  OpoRitmo
+                </h1>
+                <img
+                  src="/icon-192.png"
+                  alt=""
+                  width={56}
+                  height={56}
+                  className="size-14 shrink-0 rounded-2xl bg-surface-2 xl:size-16"
+                />
+              </div>
+              <p className="mt-4 max-w-sm text-[15px] leading-relaxed text-muted">
+                Una herramienta para organizar el estudio de oposiciones.
+              </p>
+              <button
+                type="button"
+                onClick={() => ir(1)}
+                className="mt-8 h-12 w-full rounded-full bg-accent px-12 text-sm font-semibold text-accent-fg xl:w-auto"
+              >
+                Empezar
+              </button>
+            </div>
+            <div className="flex min-w-0 flex-col justify-center gap-3 bg-accent-soft px-5 py-6 sm:px-8 sm:py-10 xl:px-10">
+              {BIENVENIDA.map((item, i) => (
+                <article
+                  key={item.titulo}
+                  className={cn(
+                    "flex min-w-0 gap-3 rounded-2xl bg-surface px-4 py-4 shadow-card",
+                    i === 0 && "opo-in-delay-1",
+                    i === 1 && "opo-in-delay-2",
+                    i === 2 && "opo-in-delay-3",
+                  )}
+                >
+                  <span
+                    aria-hidden
+                    className="mt-0.5 w-1 shrink-0 self-stretch rounded-full bg-accent"
+                  />
+                  <div className="min-w-0">
+                    <p className="font-semibold tracking-tight">{item.titulo}</p>
+                    <p className="mt-1 text-sm leading-relaxed text-muted break-words">
+                      {item.texto}
+                    </p>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
+
         {paso === 1 && (
-          <section className="mt-6 rounded-xl border border-line bg-surface p-5">
+          <section className="card opo-in mt-6 p-5">
             <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted">
               1 · Temario
             </p>
@@ -193,8 +315,10 @@ export function Onboarding() {
                 type="number"
                 min={1}
                 max={80}
-                value={totalTemas}
-                onChange={(e) => setTotalTemas(Number(e.target.value) || 1)}
+                inputMode="numeric"
+                value={totalTemas || ""}
+                onChange={(e) => setTotalTemas(enteroEnEdicion(e.target.value))}
+                onBlur={() => setTotalTemas((n) => enteroAlSalir(n, 1, 80))}
                 className={fieldClass}
               />
             </label>
@@ -206,8 +330,10 @@ export function Onboarding() {
                 type="number"
                 min={1}
                 max={10}
-                value={temasSorteo}
-                onChange={(e) => setTemasSorteo(Number(e.target.value) || 1)}
+                inputMode="numeric"
+                value={temasSorteo || ""}
+                onChange={(e) => setTemasSorteo(enteroEnEdicion(e.target.value))}
+                onBlur={() => setTemasSorteo((n) => enteroAlSalir(n, 1, 10))}
                 className={fieldClass}
               />
             </label>
@@ -217,6 +343,7 @@ export function Onboarding() {
                 type="text"
                 value={especialidad}
                 onChange={(e) => setEspecialidad(e.target.value)}
+                placeholder="La tuya"
                 className={fieldClass}
               />
             </label>
@@ -226,24 +353,22 @@ export function Onboarding() {
                 type="text"
                 value={comunidad}
                 onChange={(e) => setComunidad(e.target.value)}
+                placeholder="La tuya"
                 className={fieldClass}
               />
             </label>
-            <button
-              type="button"
-              onClick={() => {
+            <AccionesPaso
+              continuar={() => {
                 guardarTemario();
                 ir(2);
               }}
-              className="mt-5 h-12 w-full rounded-md bg-accent text-sm font-semibold text-accent-fg"
-            >
-              Siguiente
-            </button>
+              atras={() => ir(0)}
+            />
           </section>
         )}
 
         {paso === 2 && (
-          <section className="mt-6 rounded-xl border border-line bg-surface p-5">
+          <section className="card opo-in mt-6 p-5">
             <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted">
               2 · Periodo
             </p>
@@ -314,7 +439,7 @@ export function Onboarding() {
                       next[i] = Number(e.target.value) || 0;
                       setHorasPorDia(next);
                     }}
-                    className="h-11 w-full rounded-md border border-line bg-bg px-1 text-center tabular-nums focus:outline-none focus:ring-2 focus:ring-accent"
+                    className="h-11 w-full rounded-full border-0 bg-surface-2 px-1 text-center tabular-nums focus:outline-none focus:ring-2 focus:ring-accent"
                   />
                 </label>
               ))}
@@ -322,33 +447,23 @@ export function Onboarding() {
             <p className="mt-2 text-xs text-muted">
               {formatHoras(sumaHoras(horasPorDia))} a la semana
             </p>
-            <button
-              type="button"
-              onClick={() => {
+            <AccionesPaso
+              continuar={() => {
                 guardarPeriodo();
                 ir(3);
               }}
-              className="mt-5 h-12 w-full rounded-md bg-accent text-sm font-semibold text-accent-fg"
-            >
-              Siguiente
-            </button>
-            <button
-              type="button"
-              onClick={() => ir(1)}
-              className="mt-2 h-11 w-full text-sm font-medium text-muted"
-            >
-              Atrás
-            </button>
+              atras={() => ir(1)}
+            />
           </section>
         )}
 
         {paso === 3 && (
-          <div className="mt-6 space-y-3">
+          <div className="opo-in mt-6">
             <AccountPanel
               callbackURL="/"
               numero="3"
               titulo="Conecta la cuenta"
-              descripcion="Si no entras, el temario se queda solo en este navegador. Si cambias de móvil o se limpia, se pierde. Con Google o X lo recuperas."
+              descripcion="Si no entras, el temario se queda solo en este navegador. Si cambias de móvil o se limpia, se pierde. Con Google, X o un correo lo recuperas."
               botonesAcento
               onIntentarEntrar={() => {
                 if (typeof window !== "undefined") {
@@ -356,58 +471,50 @@ export function Onboarding() {
                 }
               }}
             />
-            {user ? (
+            <div className="sticky bottom-0 z-10 mt-3 space-y-2 border-t border-line bg-bg pt-3">
+              {user ? (
+                <button
+                  type="button"
+                  onClick={() => ir("animo")}
+                  className="h-12 w-full rounded-full bg-accent text-sm font-semibold text-accent-fg"
+                >
+                  Continuar
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => ir("animo")}
+                  className="h-12 w-full rounded-full bg-surface-2 text-sm font-medium"
+                >
+                  Seguir sin cuenta
+                </button>
+              )}
               <button
                 type="button"
-                onClick={() => ir("animo")}
-                className="h-12 w-full rounded-md bg-accent text-sm font-semibold text-accent-fg"
+                onClick={() => ir(2)}
+                className="h-11 w-full text-sm font-medium text-muted"
               >
-                Continuar
+                Atrás
               </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => ir("animo")}
-                className="h-12 w-full rounded-md border border-line bg-surface text-sm font-medium"
-              >
-                Seguir sin cuenta
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={() => ir(2)}
-              className="h-11 w-full text-sm font-medium text-muted"
-            >
-              Atrás
-            </button>
+            </div>
           </div>
         )}
 
         {paso === "animo" && (
-          <button
-            type="button"
-            onClick={terminar}
-            className="mt-16 w-full text-left"
-          >
+          <section className="card-hero opo-in mt-10 px-5 py-8">
             <p className="font-display text-4xl font-semibold">¡Ánimo!</p>
-            <p className="mt-3 text-sm text-muted">Ya está. A estudiar.</p>
-          </button>
-        )}
-
-        {paso !== "animo" && (
-          <button
-            type="button"
-            onClick={() => {
-              if (typeof window !== "undefined") {
-                window.sessionStorage.removeItem(PASO_KEY);
-              }
-              resetDemo();
-              toast("Cargado un ejemplo para probar");
-            }}
-            className="mt-4 h-11 w-full text-sm font-medium text-muted underline-offset-4 hover:underline"
-          >
-            Prefiero ver un ejemplo
-          </button>
+            <p className="mt-3 text-sm text-muted">
+              Ya está. El plan está listo. A partir de ahora, «Hoy» te dice qué
+              tocar.
+            </p>
+            <button
+              type="button"
+              onClick={terminar}
+              className="mt-6 h-12 w-full rounded-full bg-accent text-sm font-semibold text-accent-fg"
+            >
+              Ir a Hoy
+            </button>
+          </section>
         )}
         <Credit />
       </div>

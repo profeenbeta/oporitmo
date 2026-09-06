@@ -1,4 +1,3 @@
-@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Source+Sans+3:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap");
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
@@ -32,18 +31,29 @@
   --bloque-oliva-suave: #a5f3fc;
   --bloque-coral-suave: #fecdd3;
   --bloque-pizarra-suave: #cbd5e1;
+  --elev-card:
+    0 0 0 1px rgb(28 25 20 / 0.05),
+    0 10px 28px -12px rgb(28 25 20 / 0.22),
+    0 2px 8px -2px rgb(28 25 20 / 0.08);
+  --elev-hero:
+    0 0 0 1px rgb(47 93 74 / 0.08),
+    0 18px 40px -16px rgb(47 93 74 / 0.28),
+    0 6px 14px -6px rgb(28 25 20 / 0.12);
+  --ease-out-apple: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-apple: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-spring: cubic-bezier(0.22, 1.6, 0.32, 1);
   color-scheme: light;
 }
 
 html.dark {
-  --bg: #14110e;
-  --surface: #1e1a16;
-  --surface-2: #2a241e;
-  --ink: #f3eee4;
-  --muted: #b4aaa0;
-  --faint: #8a8178;
-  --line: #3c342c;
-  --accent: #8fbfa6;
+  --bg: #16130f;
+  --surface: #211c17;
+  --surface-2: #2c261f;
+  --ink: #f4efe6;
+  --muted: #c3b9ad;
+  --faint: #94897d;
+  --line: #433b32;
+  --accent: #9bc9b0;
   --accent-fg: #122018;
   --accent-soft: #24352c;
   --warn: #d4a078;
@@ -64,6 +74,15 @@ html.dark {
   --bloque-oliva-suave: #115e59;
   --bloque-coral-suave: #9d174d;
   --bloque-pizarra-suave: #334155;
+  --elev-card:
+    0 0 0 1px rgb(255 255 255 / 0.07),
+    0 14px 32px -12px rgb(0 0 0 / 0.55);
+  --elev-hero:
+    0 0 0 1px rgb(155 201 176 / 0.14),
+    0 20px 44px -14px rgb(0 0 0 / 0.62);
+  --ease-out-apple: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-apple: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-spring: cubic-bezier(0.22, 1.6, 0.32, 1);
   color-scheme: dark;
 }
 
@@ -102,12 +121,15 @@ html.dark {
   --radius-md: 12px;
   --radius-lg: 20px;
   --radius-xl: 28px;
+  --shadow-card: var(--elev-card);
+  --shadow-hero: var(--elev-hero);
 }
 
 @layer base {
   html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    -webkit-tap-highlight-color: transparent;
   }
 
   html,
@@ -122,6 +144,7 @@ html.dark {
     color: var(--ink);
     font-family: var(--font-sans);
     line-height: 1.5;
+    overscroll-behavior-y: contain;
   }
 
   h1,
@@ -140,6 +163,13 @@ html.dark {
   button:not(:disabled),
   [role="button"]:not(:disabled) {
     cursor: pointer;
+    transition: transform 380ms var(--ease-spring);
+  }
+
+  button:not(:disabled):active,
+  [role="button"]:not(:disabled):active {
+    transform: scale(0.92);
+    transition-duration: 90ms;
   }
 
   input,
@@ -150,11 +180,176 @@ html.dark {
   }
 }
 
+@layer components {
+  .card {
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    box-shadow: var(--elev-card);
+    transition:
+      box-shadow 520ms var(--ease-spring),
+      transform 520ms var(--ease-spring);
+  }
+
+  .card-hero {
+    border-radius: var(--radius-lg);
+    background: var(--accent-soft);
+    box-shadow: var(--elev-hero);
+    transition:
+      box-shadow 520ms var(--ease-spring),
+      transform 520ms var(--ease-spring);
+  }
+
+  @media (hover: hover) {
+    .card:hover:not(.card-static) {
+      transform: translateY(-5px) scale(1.02);
+      box-shadow: var(--elev-hero);
+    }
+
+    .card-hero:hover:not(.card-static) {
+      transform: translateY(-5px) scale(1.02);
+    }
+  }
+
+  .glass {
+    background: color-mix(in srgb, var(--surface) 72%, transparent);
+    box-shadow: var(--elev-card);
+    backdrop-filter: blur(22px) saturate(1.7);
+    -webkit-backdrop-filter: blur(22px) saturate(1.7);
+  }
+
+  .kicker {
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .pill {
+    display: inline-flex;
+    height: 2.5rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    padding-inline: 0.9rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .pill-on {
+    background: var(--accent);
+    color: var(--accent-fg);
+  }
+
+  .pill-off {
+    background: var(--surface-2);
+    color: var(--muted);
+  }
+
+  .opo-in {
+    animation: opo-in 720ms var(--ease-spring) both;
+  }
+
+  .opo-in-delay-1 {
+    animation: opo-in 720ms var(--ease-spring) 90ms both;
+  }
+
+  .opo-in-delay-2 {
+    animation: opo-in 720ms var(--ease-spring) 170ms both;
+  }
+
+  .opo-in-delay-3 {
+    animation: opo-in 720ms var(--ease-spring) 250ms both;
+  }
+}
+
+@keyframes opo-in {
+  0% {
+    opacity: 0;
+    transform: translateY(28px) scale(0.92);
+    filter: blur(10px);
+  }
+  62% {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(-12px) scale(1.045);
+  }
+  82% {
+    transform: translateY(5px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+[data-vaul-drawer] {
+  animation-duration: 0.7s !important;
+  animation-timing-function: cubic-bezier(0.22, 1.65, 0.32, 1) !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
+  }
+
+  ::view-transition-old(opo-page),
+  ::view-transition-new(opo-page) {
+    animation: none !important;
+  }
+}
+
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+.page-in {
+  animation: page-in 380ms var(--ease-out-apple) both;
+}
+
+main {
+  view-transition-name: opo-page;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+}
+
+::view-transition-old(opo-page) {
+  animation: 160ms var(--ease-in-apple) both vt-out;
+}
+
+::view-transition-new(opo-page) {
+  animation: 380ms var(--ease-out-apple) both vt-in;
+}
+
+@keyframes vt-out {
+  to {
+    opacity: 0;
+    transform: translateY(-8px);
+    filter: blur(4px);
+  }
+}
+
+@keyframes vt-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+    filter: blur(4px);
   }
 }

@@ -31,17 +31,9 @@ interface GrokPwaEvent {
 }
 
 function requestHost(event: GrokPwaEvent): string {
-  const raw =
-    event.req.headers.get("x-forwarded-host") ??
-    event.req.headers.get("host") ??
-    event.url.host;
-  const host = String(raw ?? "")
-    .split(",")[0]
-    .trim()
-    .split(":")[0]
-    .toLowerCase();
-  if (host.endsWith(".grok.me")) return host;
-  return "oporitmo.grok.me";
+  return (
+    event.req.headers.get("x-forwarded-host") ?? event.req.headers.get("host") ?? event.url.host
+  );
 }
 
 function injectHeadStreaming(response: Response, host: string): Response {
@@ -61,11 +53,6 @@ function injectHeadStreaming(response: Response, host: string): Response {
   );
   const headers = new Headers(response.headers);
   headers.delete("content-length");
-  // Platform default is noindex; that blocks X/Telegram cards. Prefer unfurl.
-  headers.set(
-    "x-robots-tag",
-    "index, follow, max-image-preview:large, max-snippet:-1",
-  );
   return new Response(transformed, {
     status: response.status,
     statusText: response.statusText,

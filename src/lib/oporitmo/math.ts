@@ -13,6 +13,18 @@ export function combinatoria(n: number, k: number): number {
   return res;
 }
 
+/** Vacío al escribir. No forzar 1 en cada tecla (si no, al borrar el 3 sale 1 y el 2 acaba en 12). */
+export function enteroEnEdicion(raw: string): number {
+  if (raw.trim() === "") return 0;
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : 0;
+}
+
+export function enteroAlSalir(valor: number, min: number, max: number): number {
+  if (!Number.isFinite(valor) || valor < min) return min;
+  return Math.min(max, Math.round(valor));
+}
+
 export function probabilidadAlMenosUno(
   preparados: number,
   total: number,
@@ -157,11 +169,19 @@ export function sumaHoras(dias: number[]): number {
   return dias.reduce((a, b) => a + b, 0);
 }
 
+export function esDiaLibre(
+  fecha: string,
+  dias?: string[] | null,
+): boolean {
+  return Array.isArray(dias) && dias.includes(fecha);
+}
+
 export function horasDelDia(
   fecha: string,
-  config: Pick<Config, "horasPorDia">,
+  config: Pick<Config, "horasPorDia" | "diasLibres">,
   overrideHoy: number | null,
 ): number {
+  if (esDiaLibre(fecha, config.diasLibres)) return 0;
   if (fecha === hoyISO() && overrideHoy !== null) return Math.max(0, overrideHoy);
   return normalizarHorasDia(config.horasPorDia)[indiceSemana(fecha)] ?? 0;
 }
