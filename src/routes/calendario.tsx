@@ -71,7 +71,7 @@ function AccionesDiaLibre({
   return (
     <div className="mt-4">
       <p className="text-xs text-muted">
-        Úsalo para vacaciones, guardias o días que no puedes estudiar.
+        Úsalo para vacaciones, trabajo o imprevistos.
       </p>
       <button
         type="button"
@@ -93,6 +93,7 @@ function CalendarioPage() {
   });
   const [sel, setSel] = useState(hoyISO());
   const [ficha, setFicha] = useState(false);
+  const [verMasDias, setVerMasDias] = useState(false);
   const mesGesto = useRef<{ x: number; y: number } | null>(null);
 
   const config = useOpoStore((s) => s.config);
@@ -427,7 +428,7 @@ function CalendarioPage() {
       <section className="mt-4 pb-2">
         <h3 className="font-display text-lg font-semibold">Próximos días</h3>
         <ul className="mt-2 space-y-2">
-          {horizonte.slice(0, 10).map((d) => (
+          {(verMasDias ? horizonte : horizonte.slice(0, 10)).map((d) => (
             <li key={d.fecha}>
               <button
                 type="button"
@@ -456,6 +457,15 @@ function CalendarioPage() {
             </li>
           ))}
         </ul>
+        {horizonte.length > 10 && (
+          <button
+            type="button"
+            onClick={() => setVerMasDias((v) => !v)}
+            className="mt-2 h-11 w-full rounded-full bg-surface-2 text-sm font-medium"
+          >
+            {verMasDias ? "Ver menos" : "Ver más"}
+          </button>
+        )}
       </section>
       </div>
       </div>

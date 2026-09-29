@@ -27,7 +27,7 @@ Pensada para maestros, secundaria y cualquier oposición con temario numerado y 
 
 - **Qué hacer hoy** — propuesta del día según tu ritmo, sin reorganizar todo el plan.
 - **Calendario flexible** — aguanta días malos y se reajusta sin romperse.
-- **Días libres** — vacaciones o guardias, desde el detalle del día.
+- **Días libres** — vacaciones, trabajo o imprevistos, desde el detalle del día.
 - **Horas distintas por día de la semana** — y posibilidad de cambiar solo las de hoy.
 - **Periodo de estudio** — día de inicio y día de fin configurables.
 - **Temas a medias** — si no terminas uno, al día siguiente aparece para acabarlo.
@@ -58,8 +58,14 @@ Pensada para maestros, secundaria y cualquier oposición con temario numerado y 
 - **Frase de ánimo al terminar un tema** (con confeti).
 - **Reentrada calmada** — si vuelves tras varios días, Hoy te indica por dónde retomar, sin culpa.
 - **Ritmo respecto a la fecha** — una frase en Hoy sobre si tu ritmo encaja con el examen (sin semáforo ni porcentajes de pánico).
-- **Días libres** — márcalos en el calendario (vacaciones, guardias); ese día no propone estudio y el plan se reajusta.
+- **Días libres** — márcalos en el calendario (vacaciones, trabajo o imprevistos); ese día no propone estudio y el plan se reajusta.
+- **Reloj de sesión** — en «Hoy»: empezar, pausar y parar. Al parar, rellena los minutos.
+- **Tipos de sesión** — tema, supuesto, esquema o resumen. Solo tiempo y un nombre corto; sin enunciados ni archivos.
+- **Supuestos opcionales** — si tu oposición no los tiene, se pueden ocultar en el arranque o en Ajustes.
+- **Preguntas frecuentes** — en Ajustes, con las dudas habituales.
+- **Ajustes por pestañas** — Cuenta, Plan, Pantalla, Ayuda y Zona delicada.
 - **Copia de seguridad** — sin cuenta, puedes guardar y recuperar el plan con un archivo en el dispositivo.
+- **Recordatorio de copia** — en Cuenta, si hace tiempo que no guardas el plan.
 - **Modo claro / oscuro / sistema**.
 - **Sin registro obligatorio** — los datos pueden quedarse solo en el dispositivo.
 - **Cuenta opcional** (Google, X o correo) — para sincronizar entre móvil y ordenador.

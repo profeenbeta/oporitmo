@@ -138,6 +138,10 @@ export function formatMinutos(min: number): string {
   return formatHoras(min / 60);
 }
 
+export function etiquetaDias(n: number): string {
+  return Math.abs(n) === 1 ? "día" : "días";
+}
+
 export function formatReloj(ms: number): string {
   const total = Math.max(0, Math.floor(ms / 1000));
   const h = Math.floor(total / 3600);

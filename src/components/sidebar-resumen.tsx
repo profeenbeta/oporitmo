@@ -41,7 +41,9 @@ export function SidebarResumen() {
         <p className="mt-0.5 font-display text-2xl font-semibold tabular-nums">
           {dias === 0 ? "Hoy" : dias}
           {dias !== 0 && (
-            <span className="ml-1 text-base font-medium text-muted">días</span>
+            <span className="ml-1 text-base font-medium text-muted">
+              {dias === 1 ? "día" : "días"}
+            </span>
           )}
         </p>
       </Link>

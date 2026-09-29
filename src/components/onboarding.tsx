@@ -112,6 +112,9 @@ export function Onboarding() {
   const [comunidad, setComunidad] = useState(
     config.comunidad === "Andalucía" ? "" : config.comunidad,
   );
+  const [usarSupuestos, setUsarSupuestos] = useState(
+    config.usarSupuestos !== false,
+  );
   const hecho = useRef(false);
   const datosRef = useRef({
     totalTemas,
@@ -122,6 +125,7 @@ export function Onboarding() {
     horasPorDia,
     especialidad,
     comunidad,
+    usarSupuestos,
   });
   datosRef.current = {
     totalTemas,
@@ -132,6 +136,7 @@ export function Onboarding() {
     horasPorDia,
     especialidad,
     comunidad,
+    usarSupuestos,
   };
 
   useEffect(() => {
@@ -174,6 +179,7 @@ export function Onboarding() {
       temasSorteo: enteroAlSalir(temasSorteo, 1, 10),
       especialidad,
       comunidad,
+      usarSupuestos,
     });
   }
 
@@ -246,7 +252,7 @@ export function Onboarding() {
             <div className="flex flex-col justify-center px-6 py-8 sm:px-10 sm:py-12 xl:px-12">
               <div className="flex items-start justify-between gap-4">
                 <h1 className="font-display text-[2.15rem] font-semibold leading-[1.12] tracking-tight text-accent sm:text-5xl">
-                  Bienvenido a
+                  ¡Hola! Esto es
                   <br />
                   OpoRitmo
                 </h1>
@@ -337,6 +343,27 @@ export function Onboarding() {
                 className={fieldClass}
               />
             </label>
+            <div className="mt-4">
+              <p className="mb-1 text-sm text-muted">
+                ¿Tu oposición tiene supuestos prácticos?
+              </p>
+              <div className="flex gap-1 rounded-full bg-surface-2 p-1">
+                <button
+                  type="button"
+                  onClick={() => setUsarSupuestos(true)}
+                  className={usarSupuestos ? "pill pill-on flex-1" : "pill pill-off flex-1"}
+                >
+                  Sí
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setUsarSupuestos(false)}
+                  className={!usarSupuestos ? "pill pill-on flex-1" : "pill pill-off flex-1"}
+                >
+                  No
+                </button>
+              </div>
+            </div>
             <label className="mt-4 block">
               <span className="mb-1 block text-sm text-muted">Especialidad</span>
               <input

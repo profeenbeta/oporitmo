@@ -8,44 +8,45 @@ import {
 } from "./math";
 import type { AppData } from "./types";
 
-const MIN_DIAS_USO = 3;
-
 export function fraseRitmoFecha(
   data: AppData,
   hoy = hoyISO(),
 ): string | null {
   const { config, temas, sesiones } = data;
   const examen = config.fechaExamen;
-  const inicio = config.fechaInicio;
-  const fin = config.fechaFin || examen;
-  if (!examen || !inicio || !fin) return null;
+  if (!examen) return null;
   if (hoy > examen) return null;
 
-  const diasUsados = new Set(
-    sesiones.filter((s) => s.minutos > 0).map((s) => s.fecha),
+  const minutosHechos = sesiones.reduce(
+    (a, s) => a + Math.max(0, s.minutos),
+    0,
   );
-  const horasHechas =
-    sesiones.reduce((a, s) => a + Math.max(0, s.minutos), 0) / 60;
-  if (horasHechas <= 0 || diasUsados.size < MIN_DIAS_USO) return null;
+  if (minutosHechos <= 0) return null;
 
+  const fin = config.fechaFin || examen;
   const nVueltas = Math.max(1, config.vueltas?.length ?? 1);
   const pasesPendientes = temas.reduce((a, t) => {
     const hechas = Math.max(0, t.vuelta ?? 0);
     return a + Math.max(0, nVueltas - hechas);
   }, 0);
 
-  const diasEstudio = contarDiasDeEstudio(data, hoy, fin);
   if (pasesPendientes === 0) {
     return "Con tu ritmo actual, vas encajando con la fecha del examen.";
   }
-  if (diasEstudio <= 0) return null;
+
+  const diasEstudio = contarDiasDeEstudio(data, hoy, fin);
+  if (diasEstudio <= 0) {
+    return "Con tu ritmo actual, la fecha va justa. Mantener tus horas ayuda.";
+  }
 
   const carga = pasesPendientes / diasEstudio;
   if (carga <= 0.9) {
     return "Con tu ritmo actual, vas encajando con la fecha del examen.";
   }
 
-  const horasSemana = Math.round(sumaHoras(normalizarHorasDia(config.horasPorDia)));
+  const horasSemana = Math.round(
+    sumaHoras(normalizarHorasDia(config.horasPorDia)),
+  );
   if (carga <= 1.15) {
     if (horasSemana >= 1 && horasSemana <= 40) {
       return `Con tu ritmo actual, la fecha va justa si mantienes unas ${horasSemana} h a la semana.`;

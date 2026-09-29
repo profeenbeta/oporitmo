@@ -7,6 +7,7 @@ import {
 import { AuthProvider } from "@/lib/auth/provider";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import { CloudSync } from "@/components/cloud-sync";
+import { VisitaPing } from "@/components/visita-ping";
 import { PwaRegister } from "@/components/pwa-install";
 import { ThemeSync } from "@/components/theme-sync";
 import { THEME_BOOT_SCRIPT } from "@/lib/theme";
@@ -98,6 +99,7 @@ export const Route = createRootRoute({
         <PwaRegister />
         <AuthProvider>
           <CloudSync />
+          <VisitaPing />
           <Outlet />
           <Toaster
             position="bottom-center"

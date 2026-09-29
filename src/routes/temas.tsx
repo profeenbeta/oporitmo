@@ -67,7 +67,7 @@ function TemasPage() {
   const chips = useMemo(() => {
     const vueltasChips = vueltas.map((_, i) => ({
       id: `vuelta:${i + 1}` as Filtro,
-      label: ordinalVuelta(i + 1),
+      label: `${ordinalVuelta(i + 1)} vuelta`,
     }));
     return [
       { id: "todos" as Filtro, label: "Todos" },
@@ -111,6 +111,13 @@ function TemasPage() {
         dias: t.ultimoTrabajo ? diasEntre(t.ultimoTrabajo, hoy) : null,
       }));
   }, [temas, filtro, busqueda, filtroBloque, vueltas]);
+
+  useEffect(() => {
+    if (selTema != null) return;
+    if (lista.length === 0) return;
+    if (!window.matchMedia("(min-width: 1280px)").matches) return;
+    setSelTema(lista[0]!.id);
+  }, [lista, selTema]);
 
   const grupos = useMemo(() => {
     if (!agrupar || bloques.length === 0) {
@@ -488,7 +495,7 @@ function TemaInspector({ id }: { id: number | null }) {
                 ` · ${
                   t.vuelta > nVueltas
                     ? "Preparado"
-                    : `${ordinalVuelta(t.vuelta)} de ${nVueltas}`
+                    : `${ordinalVuelta(t.vuelta)} vuelta de ${nVueltas}`
                 }`}
             </p>
             {(t.pendiente || olvidado) && (
@@ -716,7 +723,7 @@ function TemaFila({
               ` · ${
                 t.vuelta > nVueltas
                   ? "Preparado"
-                  : `${ordinalVuelta(t.vuelta)} de ${nVueltas}`
+                  : `${ordinalVuelta(t.vuelta)} vuelta de ${nVueltas}`
               }`}
           </p>
           {tiempos.length > 0 && (

@@ -3,7 +3,7 @@ import type { Apariencia } from "@/lib/theme";
 import { useEffect, useState } from "react";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { AppData, Config, Estado, Sesion, Simulacro, Tema } from "./types";
+import type { AppData, Config, Estado, Sesion, Simulacro, Tema, TipoSesion } from "./types";
 import {
   bloqueDeDemo,
   bloquesDemo,
@@ -41,6 +41,7 @@ export const DEFAULT_CONFIG: Config = {
   vueltas: [...DEFAULT_VUELTAS],
   duracionSimulacro: 90,
   diasLibres: [],
+  usarSupuestos: true,
 };
 
 const PREP_DEMO = [1, 3, 5, 7, 8, 10, 12, 14, 16, 18, 20, 22, 24];
@@ -179,6 +180,7 @@ function normalizarConfig(raw: Partial<Config> | undefined): Config {
       Math.max(10, Math.round(Number(raw?.duracionSimulacro) || 90)),
     ),
     diasLibres: normalizarDiasLibres(raw?.diasLibres),
+    usarSupuestos: raw?.usarSupuestos !== false,
   };
 }
 
@@ -235,6 +237,31 @@ function limpiarBloqueId(temas: Tema[], bloques: Bloque[]): Tema[] {
   );
 }
 
+function esTipoSesion(v: unknown): v is TipoSesion {
+  return v === "tema" || v === "supuesto" || v === "esquema" || v === "resumen";
+}
+
+function normalizarSesiones(raw: unknown): Sesion[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((item) => {
+    const s = (item ?? {}) as Partial<Sesion>;
+    const tipo: TipoSesion = esTipoSesion(s.tipo) ? s.tipo : "tema";
+    const nombre =
+      typeof s.nombre === "string" && s.nombre.trim()
+        ? s.nombre.trim().slice(0, 80)
+        : undefined;
+    return {
+      id: typeof s.id === "string" ? s.id : `${s.fecha ?? ""}-${s.temaId ?? 0}`,
+      temaId: typeof s.temaId === "number" ? s.temaId : 0,
+      fecha: typeof s.fecha === "string" ? s.fecha : hoyISO(),
+      minutos: Math.max(0, Number(s.minutos) || 0),
+      cerrada: s.cerrada ?? true,
+      tipo,
+      ...(nombre ? { nombre } : {}),
+    };
+  });
+}
+
 function normalizarSimulacros(raw: unknown): Simulacro[] {
   if (!Array.isArray(raw)) return [];
   const out: Simulacro[] = [];
@@ -268,6 +295,7 @@ export type ArranqueInput = {
   horasPorDia: number[];
   especialidad: string;
   comunidad: string;
+  usarSupuestos: boolean;
 };
 
 type Store = AppData & {
@@ -284,6 +312,13 @@ type Store = AppData & {
     minutos: number,
     terminar: boolean,
   ) => void;
+  registrarSesionTipo: (input: {
+    tipo: Exclude<TipoSesion, "tema">;
+    temaId: number;
+    nombre?: string;
+    minutos: number;
+    cerrada: boolean;
+  }) => void;
   saltarHoy: (temaId: number) => void;
   cambiarEstado: (temaId: number, estado: Estado) => void;
   renombrarTema: (temaId: number, titulo: string) => void;
@@ -355,10 +390,7 @@ export const useOpoStore = create<Store>()(
             ),
             bloques,
           ),
-          sesiones: (data.sesiones ?? []).map((s) => ({
-            ...s,
-            cerrada: s.cerrada ?? true,
-          })),
+          sesiones: normalizarSesiones(data.sesiones),
           simulacros: normalizarSimulacros(data.simulacros),
           onboardingHecho: data.onboardingHecho === true,
           apariencia: data.apariencia ?? get().apariencia,
@@ -396,6 +428,36 @@ export const useOpoStore = create<Store>()(
               : base;
           }),
           sesiones: sesion ? [...sesiones, sesion] : sesiones,
+          savedAt: Date.now(),
+        });
+      },
+      registrarSesionTipo: ({ tipo, temaId, nombre, minutos, cerrada }) => {
+        const titulo = (nombre ?? "").trim().slice(0, 80);
+        if (tipo === "supuesto" && !titulo) return;
+        const { temas, sesiones } = get();
+        const tema = temas.find((t) => t.id === temaId);
+        if (!tema) return;
+        const mins = Number.isFinite(minutos) && minutos > 0 ? minutos : 0;
+        const sesion: Sesion = {
+          id: `${Date.now()}-${tipo}-${temaId}`,
+          temaId,
+          fecha: hoyISO(),
+          minutos: mins,
+          cerrada,
+          tipo,
+          ...(titulo ? { nombre: titulo } : {}),
+        };
+        set({
+          temas: temas.map((t) =>
+            t.id === temaId
+              ? {
+                  ...t,
+                  tiempoInvertido: t.tiempoInvertido + mins / 60,
+                  ultimoTrabajo: hoyISO(),
+                }
+              : t,
+          ),
+          sesiones: [...sesiones, sesion],
           savedAt: Date.now(),
         });
       },
@@ -592,6 +654,7 @@ export const useOpoStore = create<Store>()(
           horasPorDia: input.horasPorDia,
           especialidad: input.especialidad.trim(),
           comunidad: input.comunidad.trim(),
+          usarSupuestos: input.usarSupuestos !== false,
         });
         set({
           config,
@@ -642,10 +705,7 @@ export const useOpoStore = create<Store>()(
             ),
             bloques,
           ),
-          sesiones: (data.sesiones ?? []).map((s) => ({
-            ...s,
-            cerrada: s.cerrada ?? true,
-          })),
+          sesiones: normalizarSesiones(data.sesiones),
           simulacros: normalizarSimulacros(data.simulacros),
           onboardingHecho: true,
           savedAt: Date.now(),
@@ -703,10 +763,7 @@ export const useOpoStore = create<Store>()(
         return {
           config,
           temas,
-          sesiones: (s.sesiones ?? []).map((x) => ({
-            ...x,
-            cerrada: x.cerrada ?? true,
-          })),
+          sesiones: normalizarSesiones(s.sesiones),
           bloques,
           simulacros: normalizarSimulacros(s.simulacros),
           horasHoyOverride:

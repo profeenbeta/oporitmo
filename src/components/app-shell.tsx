@@ -137,7 +137,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-dvh bg-bg text-ink">
       <div
-        className="mx-auto flex min-h-dvh max-w-lg flex-col px-4 pb-8 pt-5 touch-pan-y sm:max-w-3xl xl:grid xl:max-w-7xl xl:grid-cols-[15rem_minmax(0,_1fr)] xl:gap-10 xl:px-8 xl:pb-8 xl:pt-8"
+        className="app-safe-bottom mx-auto flex min-h-dvh max-w-lg flex-col px-4 pt-5 touch-pan-y sm:max-w-3xl sm:pb-8 xl:grid xl:max-w-7xl xl:grid-cols-[15rem_minmax(0,_1fr)] xl:gap-10 xl:px-8 xl:pb-8 xl:pt-8"
         onPointerDown={onPointerDown}
         onPointerUp={onPointerUp}
         onPointerCancel={() => {
@@ -183,7 +183,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </aside>
 
-        <div className="flex min-w-0 flex-1 flex-col pb-[calc(8rem+env(safe-area-inset-bottom))] sm:pb-0">
+        <div className="flex min-w-0 flex-1 flex-col">
           <header className="mb-5 flex items-start justify-between gap-3 xl:hidden">
             <div>
               <h1 className="font-display text-3xl font-semibold leading-none text-ink">

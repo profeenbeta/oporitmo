@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { BloqueMarca } from "@/components/bloque-marca";
@@ -10,6 +10,7 @@ import {
   formatFechaCorta,
   formatHoras,
   formatMinutos,
+  formatReloj,
   horasDelDia,
   hoyISO,
   minutosDelDia,
@@ -18,8 +19,15 @@ import {
 } from "@/lib/oporitmo/math";
 import { useReentrada } from "@/lib/oporitmo/reentrada";
 import { fraseRitmoFecha } from "@/lib/oporitmo/ritmo";
+import { useRelojSesion } from "@/lib/oporitmo/reloj-sesion";
 import { etiquetaDia, planSemana } from "@/lib/oporitmo/suggestions";
-import type { Sugerencia, TipoAccion } from "@/lib/oporitmo/types";
+import {
+  ETIQUETA_TIPO_SESION,
+  TIPOS_SESION_EXTRA,
+  type Sugerencia,
+  type TipoAccion,
+  type TipoSesion,
+} from "@/lib/oporitmo/types";
 import { listarOlvidados } from "@/lib/oporitmo/vueltas";
 import { useOpoStore } from "@/lib/oporitmo/store";
 import { cn } from "@/lib/utils";
@@ -43,6 +51,19 @@ const FOCO_CORTO: Record<string, string> = {
   fin: "—",
 };
 
+const CHIPS_TIPO: { id: TipoSesion; label: string }[] = [
+  { id: "tema", label: "Tema" },
+  { id: "supuesto", label: "Supuesto" },
+  { id: "esquema", label: "Esquema" },
+  { id: "resumen", label: "Resumen" },
+];
+
+const KICKER_TIPO: Record<Exclude<TipoSesion, "tema">, string> = {
+  supuesto: "Supuesto práctico",
+  esquema: "Esquema",
+  resumen: "Resumen",
+};
+
 export function TodayPanel({
   principal,
   secundarias,
@@ -53,6 +74,7 @@ export function TodayPanel({
   const override = useOpoStore((s) => s.horasHoyOverride);
   const setHorasHoy = useOpoStore((s) => s.setHorasHoy);
   const registrarSesion = useOpoStore((s) => s.registrarSesion);
+  const registrarSesionTipo = useOpoStore((s) => s.registrarSesionTipo);
   const saltarHoy = useOpoStore((s) => s.saltarHoy);
   const config = useOpoStore((s) => s.config);
   const temas = useOpoStore((s) => s.temas);
@@ -60,12 +82,18 @@ export function TodayPanel({
   const bloques = useOpoStore((s) => s.bloques);
   const simulacros = useOpoStore((s) => s.simulacros);
   const [minutos, setMinutos] = useState("");
+  const [tipoSesion, setTipoSesion] = useState<TipoSesion>("tema");
+  const [extraTemaId, setExtraTemaId] = useState<number | null>(null);
+  const [extraNombre, setExtraNombre] = useState("");
+  const [verMasSesiones, setVerMasSesiones] = useState(false);
+  const [avisoExtra, setAvisoExtra] = useState<"tema" | "nombre" | null>(null);
   const [animo, setAnimo] = useState<{
     titulo: string;
     texto: string;
     detalle: string;
   } | null>(null);
   const { visible: reentrada, descartar: descartarReentrada } = useReentrada();
+  const reloj = useRelojSesion(principal?.tema.id);
 
   const horasHoy = horasDelDia(hoyISO(), config, override);
   const dedicadas = minutosDelDia(sesiones, hoyISO());
@@ -81,11 +109,41 @@ export function TodayPanel({
       fraseRitmoFecha({ config, temas, sesiones, bloques, simulacros }),
     [config, temas, sesiones, bloques, simulacros],
   );
+  const extras = useMemo(
+    () =>
+      [...sesiones]
+        .filter((s) => s.tipo && TIPOS_SESION_EXTRA.includes(s.tipo))
+        .sort((a, b) => (a.id < b.id ? 1 : -1))
+        .slice(0, 12),
+    [sesiones],
+  );
+  const temaExtra = extraTemaId ?? principal?.tema.id ?? temas[0]?.id;
+  const usarSupuestos = config.usarSupuestos !== false;
+  const esExtra = tipoSesion !== "tema";
+  const chipsTipo = usarSupuestos
+    ? CHIPS_TIPO
+    : CHIPS_TIPO.filter((c) => c.id !== "supuesto");
+  const extrasVisibles = verMasSesiones ? extras : extras.slice(0, 3);
+
+  useEffect(() => {
+    if (!usarSupuestos && tipoSesion === "supuesto") {
+      setTipoSesion("tema");
+      setAvisoExtra(null);
+    }
+  }, [usarSupuestos, tipoSesion]);
+
+  function minutosSesion() {
+    const delReloj = reloj.minutosDelReloj();
+    if (delReloj != null) reloj.parar();
+    const mins =
+      delReloj != null ? delReloj : minutos ? Number(minutos) : 0;
+    return Number.isFinite(mins) ? mins : 0;
+  }
 
   function registrar(id: number, terminar: boolean) {
-    const mins = minutos ? Number(minutos) : 0;
+    const mins = minutosSesion();
     const tema = temas.find((t) => t.id === id);
-    registrarSesion(id, Number.isFinite(mins) ? mins : 0, terminar);
+    registrarSesion(id, mins, terminar);
     setMinutos("");
     descartarReentrada();
     if (terminar && tema) {
@@ -94,6 +152,37 @@ export function TodayPanel({
       return;
     }
     toast("Queda a medias. Mañana saldrá para acabarlo.");
+  }
+
+  function registrarExtra(cerrada: boolean) {
+    const temaId = extraTemaId ?? principal?.tema.id;
+    const nombre = extraNombre.trim();
+    if (!temaId) {
+      setAvisoExtra("tema");
+      return;
+    }
+    if (tipoSesion === "supuesto" && !nombre) {
+      setAvisoExtra("nombre");
+      return;
+    }
+    if (tipoSesion === "tema") return;
+    const mins = minutosSesion();
+    registrarSesionTipo({
+      tipo: tipoSesion,
+      temaId,
+      nombre,
+      minutos: mins,
+      cerrada,
+    });
+    setMinutos("");
+    setExtraNombre("");
+    setAvisoExtra(null);
+    descartarReentrada();
+    toast(
+      cerrada
+        ? `${ETIQUETA_TIPO_SESION[tipoSesion]} apuntado.`
+        : `${ETIQUETA_TIPO_SESION[tipoSesion]} a medias. Queda en el historial.`,
+    );
   }
 
   const tituloPrincipal =
@@ -140,11 +229,17 @@ export function TodayPanel({
           <p className="kicker">Hoy</p>
           <h2 className="font-display text-2xl font-semibold">Qué hacer</h2>
           <p className="mt-1 text-sm text-muted">
-            Llevas {formatMinutos(dedicadas)} registradas
+            Llevas {formatMinutos(dedicadas)} registrados
           </p>
         </div>
+        <p className="text-sm text-muted">
+          Horas hoy{" "}
+          <span className="font-medium tabular-nums text-ink">
+            {formatMinutos(dedicadas)}
+          </span>
+        </p>
         <label className="flex items-center gap-2 text-sm text-muted">
-          Horas hoy
+          Previstas
           <input
             type="number"
             min={0}
@@ -237,7 +332,9 @@ export function TodayPanel({
       ) : (
         <>
           <article className="card-hero px-5 py-5">
-            <p className="kicker text-accent">{TIPO[principal.tipo]}</p>
+            <p className="kicker text-accent">
+              {esExtra ? KICKER_TIPO[tipoSesion] : TIPO[principal.tipo]}
+            </p>
             {bloqueHoy && (
               <p className="mt-1 flex items-center gap-2 text-xs text-muted">
                 <BloqueMarca color={bloqueHoy.color} />
@@ -255,6 +352,137 @@ export function TodayPanel({
             )}
 
             <div className="mt-5 flex flex-col gap-2">
+              <p className="text-xs font-medium text-muted">Tipo de sesión</p>
+              <div
+                role="tablist"
+                aria-label="Tipo de sesión"
+                className="flex flex-wrap gap-1"
+              >
+                {chipsTipo.map((c) => {
+                  const activa = tipoSesion === c.id;
+                  return (
+                    <button
+                      key={c.id}
+                      type="button"
+                      role="tab"
+                      aria-selected={activa}
+                      onClick={() => {
+                        setTipoSesion(c.id);
+                        setAvisoExtra(null);
+                        if (c.id !== "tema" && extraTemaId == null && principal.tema.id) {
+                          setExtraTemaId(principal.tema.id);
+                        }
+                      }}
+                      className={
+                        activa
+                          ? "h-11 shrink-0 whitespace-nowrap rounded-full bg-accent px-4 text-sm font-semibold text-accent-fg"
+                          : "h-11 shrink-0 whitespace-nowrap rounded-full bg-transparent px-4 text-sm font-medium text-muted"
+                      }
+                    >
+                      {c.label}
+                    </button>
+                  );
+                })}
+              </div>
+              {esExtra && (
+                <div className="space-y-2 rounded-2xl bg-surface-2 px-4 py-3">
+                  <p className="text-xs text-muted">
+                    {tipoSesion === "supuesto"
+                      ? "Solo tiempo y nombre. Sin enunciados ni PDFs."
+                      : tipoSesion === "resumen"
+                        ? "Solo tiempo. Sin subir resúmenes ni PDFs."
+                        : "Solo tiempo. Sin subir esquemas ni PDFs."}
+                  </p>
+                  <label className="block">
+                    <span className="mb-1 block text-sm text-muted">Tema</span>
+                    <select
+                      value={temaExtra ?? ""}
+                      onChange={(e) => {
+                        setExtraTemaId(Number(e.target.value));
+                        if (avisoExtra === "tema") setAvisoExtra(null);
+                      }}
+                      className="h-11 w-full rounded-full border-0 bg-surface px-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+                    >
+                      {temas.map((t) => (
+                        <option key={t.id} value={t.id}>
+                          {t.titulo}
+                        </option>
+                      ))}
+                    </select>
+                    {avisoExtra === "tema" && (
+                      <p className="mt-1 text-xs text-danger">Elige el tema</p>
+                    )}
+                  </label>
+                  <label className="block">
+                    <span className="mb-1 block text-sm text-muted">
+                      {tipoSesion === "supuesto"
+                        ? "Nombre del supuesto"
+                        : "Nombre (opcional)"}
+                    </span>
+                    <input
+                      type="text"
+                      maxLength={80}
+                      value={extraNombre}
+                      onChange={(e) => {
+                        setExtraNombre(e.target.value);
+                        if (avisoExtra === "nombre") setAvisoExtra(null);
+                      }}
+                      placeholder={
+                        tipoSesion === "supuesto"
+                          ? "p. ej. Derechos fundamentales"
+                          : tipoSesion === "resumen"
+                            ? "p. ej. Resumen corto"
+                            : "p. ej. Esquema corto"
+                      }
+                      className="h-11 w-full rounded-full border-0 bg-surface px-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+                    />
+                    {avisoExtra === "nombre" && (
+                      <p className="mt-1 text-xs text-danger">Pon un nombre corto</p>
+                    )}
+                  </label>
+                </div>
+              )}
+              {reloj.run ? (
+                <div className="rounded-2xl bg-surface-2 px-4 py-4 text-center">
+                  <p
+                    className="font-display text-4xl font-semibold tabular-nums"
+                    role="timer"
+                    aria-label={`Sesión ${formatReloj(reloj.usado)}${reloj.enPausa ? ", en pausa" : ""}`}
+                  >
+                    {formatReloj(reloj.usado)}
+                  </p>
+                  <p className="mt-1 text-xs text-muted">
+                    {reloj.enPausa ? "En pausa" : "Sesión en curso"}
+                  </p>
+                  <div className="mt-3 flex gap-2">
+                    <button
+                      type="button"
+                      onClick={reloj.enPausa ? reloj.reanudar : reloj.pausar}
+                      className="h-11 flex-1 rounded-full bg-surface text-sm font-medium"
+                    >
+                      {reloj.enPausa ? "Reanudar" : "Pausa"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const mins = reloj.parar();
+                        setMinutos(String(mins));
+                      }}
+                      className="h-11 flex-1 rounded-full bg-accent text-sm font-semibold text-accent-fg"
+                    >
+                      Parar
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={reloj.empezar}
+                  className="h-12 w-full rounded-full bg-accent text-base font-semibold text-accent-fg"
+                >
+                  Empezar sesión
+                </button>
+              )}
               <label className="flex items-center gap-2 text-sm text-muted">
                 Minutos de esta sesión
                 <input
@@ -269,15 +497,23 @@ export function TodayPanel({
               </label>
               <button
                 type="button"
-                onClick={() => registrar(principal.tema.id, true)}
-                className="h-12 w-full rounded-full bg-accent text-base font-semibold text-accent-fg"
+                onClick={() =>
+                  esExtra
+                    ? registrarExtra(true)
+                    : registrar(principal.tema.id, true)
+                }
+                className="h-12 w-full rounded-full bg-surface-2 text-base font-medium text-ink"
               >
                 Terminado
               </button>
               <div className="flex gap-2">
                 <button
                   type="button"
-                  onClick={() => registrar(principal.tema.id, false)}
+                  onClick={() =>
+                    esExtra
+                      ? registrarExtra(false)
+                      : registrar(principal.tema.id, false)
+                  }
                   className="h-11 flex-1 rounded-full bg-surface-2 text-sm font-medium"
                 >
                   A medias
@@ -285,8 +521,15 @@ export function TodayPanel({
                 <button
                   type="button"
                   onClick={() => {
-                    saltarHoy(principal.tema.id);
+                    if (reloj.run) reloj.parar();
                     descartarReentrada();
+                    if (esExtra) {
+                      toast(
+                        `No se ha apuntado el ${ETIQUETA_TIPO_SESION[tipoSesion].toLowerCase()}.`,
+                      );
+                      return;
+                    }
+                    saltarHoy(principal.tema.id);
                     toast("Lo dejamos para otro día.");
                   }}
                   className="h-11 flex-1 rounded-full bg-surface-2 text-sm font-medium"
@@ -294,8 +537,49 @@ export function TodayPanel({
                   Ahora no
                 </button>
               </div>
+              <p className="text-xs text-muted">
+                Terminado: lo has estudiado. A medias: empezaste, pero te queda
+                una parte. Ahora no: hoy no lo has tocado.
+              </p>
             </div>
           </article>
+
+          {extras.length > 0 && (
+            <div className="mt-4 card px-4 py-4">
+              <p className="kicker">Tus sesiones</p>
+              <ul className="mt-2 max-h-48 space-y-2 overflow-y-auto">
+                {extrasVisibles.map((s) => {
+                  const tema = temas.find((t) => t.id === s.temaId);
+                  const tipo = ETIQUETA_TIPO_SESION[s.tipo ?? "tema"];
+                  const tituloTema = tema?.titulo ?? `Tema ${s.temaId}`;
+                  const nombre = s.nombre?.trim();
+                  return (
+                    <li key={s.id} className="text-sm">
+                      <span className="font-medium">{tipo}</span>
+                      <span className="text-muted">
+                        {nombre ? ` · ${nombre}` : ""}
+                        {" · "}
+                        {tituloTema}
+                        {" · "}
+                        {formatFechaCorta(s.fecha)}
+                        {" · "}
+                        {formatMinutos(s.minutos)}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+              {extras.length > 3 && (
+                <button
+                  type="button"
+                  onClick={() => setVerMasSesiones((v) => !v)}
+                  className="mt-2 h-11 w-full rounded-full bg-surface-2 text-sm font-medium"
+                >
+                  {verMasSesiones ? "Ver menos" : "Ver más"}
+                </button>
+              )}
+            </div>
+          )}
 
           {secundarias.length > 0 && (
             <div className="mt-4">

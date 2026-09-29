@@ -3,6 +3,7 @@ import {
   addDays,
   diasEntre,
   faseEstudio,
+  etiquetaDias,
   horasDelDia,
   hoyISO,
   parseISO,
@@ -53,7 +54,7 @@ export function obtenerSugerencias(
     if (tema.pendiente) {
       tipo = "acabar";
       prioridad = 96;
-      motivo = "Lo dejaste a medias. Conviene cerrarlo antes de abrir otro";
+      motivo = "Lo dejaste a medias. Puedes cerrarlo cuando quieras antes de abrir otro";
     } else if (vuelta <= 0) {
       tipo = "nuevo";
       if (probActual < umbral) {
@@ -77,22 +78,22 @@ export function obtenerSugerencias(
         const olvidado = esOlvidado(tema, vueltas, fechaRef);
         prioridad = (olvidado ? 90 : yaListo ? 70 : 78) + Math.min(retraso, 20);
         motivo = olvidado
-          ? `Lleva ${diasSinTocar} días sin tocarlo. Se está enfriando`
+          ? `Lleva ${diasSinTocar} ${etiquetaDias(diasSinTocar)} sin tocarlo. Se está enfriando`
           : yaListo
           ? retraso === 0
-            ? `Toca mantenimiento (cada ${intervalo} días)`
-            : `Lleva ${diasSinTocar} días. El intervalo es ${intervalo}`
+            ? `Toca mantenimiento (cada ${intervalo} ${etiquetaDias(intervalo)})`
+            : `Lleva ${diasSinTocar} ${etiquetaDias(diasSinTocar)}. El intervalo es ${intervalo}`
           : retraso === 0
-            ? `Toca la ${ordinalVuelta(tocaN)} vuelta (${intervalo} días)`
-            : `La ${ordinalVuelta(tocaN)} vuelta lleva ${retraso} día${retraso === 1 ? "" : "s"} de retraso`;
+            ? `Toca la ${ordinalVuelta(tocaN)} vuelta (${intervalo} ${etiquetaDias(intervalo)})`
+            : `La ${ordinalVuelta(tocaN)} vuelta lleva ${retraso} ${etiquetaDias(retraso)} de retraso`;
       } else if (diasSinTocar >= aviso) {
         const quedan = intervalo - diasSinTocar;
         prioridad = 32 + diasSinTocar;
-        motivo = `La ${yaListo ? "revisión" : ordinalVuelta(tocaN) + " vuelta"} toca en ${quedan} día${quedan === 1 ? "" : "s"}`;
+        motivo = `La ${yaListo ? "revisión" : ordinalVuelta(tocaN) + " vuelta"} toca en ${quedan} ${etiquetaDias(quedan)}`;
       } else {
         const quedan = intervalo - diasSinTocar;
         prioridad = 16;
-        motivo = `Siguiente ${yaListo ? "repaso" : ordinalVuelta(tocaN) + " vuelta"} en ${quedan} día${quedan === 1 ? "" : "s"}`;
+        motivo = `Siguiente ${yaListo ? "repaso" : ordinalVuelta(tocaN) + " vuelta"} en ${quedan} ${etiquetaDias(quedan)}`;
       }
     }
 

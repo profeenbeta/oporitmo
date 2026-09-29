@@ -11,6 +11,15 @@ export function CoverageCard({
 }) {
   const preparados = contarPreparados(data);
   const { totalTemas, temasSorteo } = data.config;
+  const sinSesiones =
+    data.sesiones.length === 0 &&
+    !data.temas.some(
+      (t) =>
+        Boolean(t.ultimoTrabajo) ||
+        (t.vuelta ?? 0) > 0 ||
+        t.pendiente ||
+        t.tiempoInvertido > 0,
+    );
   const p = probabilidadAlMenosUno(preparados, totalTemas, temasSorteo);
   const pct = Math.max(0, Math.min(100, Math.round(p * 100)));
   const umbrales = [0.7, 0.8, 0.9].map((u) => ({
@@ -23,11 +32,19 @@ export function CoverageCard({
       <div className="flex items-end justify-between gap-4">
         <div className="min-w-0 flex-1">
           <p className="kicker break-words">Probabilidad en el sorteo</p>
-          <p className="mt-1 font-display text-3xl font-semibold tabular-nums text-accent">
-            {formatPct(p)}
-          </p>
+          {sinSesiones ? (
+            <p className="mt-1 font-display text-2xl font-semibold leading-tight text-accent">
+              Aún sin sesiones
+            </p>
+          ) : (
+            <p className="mt-1 font-display text-3xl font-semibold tabular-nums text-accent">
+              {formatPct(p)}
+            </p>
+          )}
           <p className="mt-0.5 text-sm text-muted">
-            De que salga al menos un tema preparado
+            {sinSesiones
+              ? "Cuando registres la primera, verás tus cifras."
+              : "De que salga al menos un tema preparado"}
           </p>
           <div
             className="mt-3 h-1.5 overflow-hidden rounded-full bg-surface-2"
@@ -47,15 +64,21 @@ export function CoverageCard({
           <p className="font-display text-2xl font-semibold tabular-nums">
             {dias}
           </p>
-          <p className="text-xs text-muted">días de estudio</p>
+          <p className="text-xs text-muted">
+            {dias === 1 ? "día de estudio" : "días de estudio"}
+          </p>
         </div>
       </div>
 
       <div className="mt-3 flex items-center justify-between text-sm">
-        <span>
-          {preparados} / {totalTemas} preparados
+        {!sinSesiones && (
+          <span>
+            {preparados} / {totalTemas} preparados
+          </span>
+        )}
+        <span className={sinSesiones ? "ml-auto text-muted" : "text-muted"}>
+          Sorteo de {temasSorteo}
         </span>
-        <span className="text-muted">Sorteo de {temasSorteo}</span>
       </div>
 
       <ul className="mt-3 grid grid-cols-3 gap-2">

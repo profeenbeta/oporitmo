@@ -26,12 +26,29 @@ export type Tema = {
   vuelta: number;
 };
 
+export type TipoSesion = "tema" | "supuesto" | "esquema" | "resumen";
+
+export const TIPOS_SESION_EXTRA: TipoSesion[] = [
+  "supuesto",
+  "esquema",
+  "resumen",
+];
+
+export const ETIQUETA_TIPO_SESION: Record<TipoSesion, string> = {
+  tema: "Tema",
+  supuesto: "Supuesto",
+  esquema: "Esquema",
+  resumen: "Resumen",
+};
+
 export type Sesion = {
   id: string;
   temaId: number;
   fecha: string;
   minutos: number;
   cerrada: boolean;
+  tipo?: TipoSesion;
+  nombre?: string;
 };
 
 export type Simulacro = {
@@ -58,6 +75,7 @@ export type Config = {
   vueltas: number[];
   duracionSimulacro: number;
   diasLibres: string[];
+  usarSupuestos: boolean;
 };
 
 export type AppData = {
